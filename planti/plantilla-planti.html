@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planti Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            light: '#e1f5e5', /* Fondo de stats */
+                            DEFAULT: '#4ade80', /* Verde principal */
+                            dark: '#16a34a', /* Textos y bordes activos */
+                            leaf: '#0f2e1a'  /* Banner oscuro */
+                        },
+                        surface: '#f8fafc' /* Fondo del dashboard */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Ajustes sutiles para scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-surface text-gray-800 font-sans" x-data="{ user: 'Shakir' }">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-white border-r border-gray-100 flex flex-col justify-between hidden md:flex">
+            <div>
+                <div class="p-6 flex items-center gap-3">
+                    <div class="bg-brand text-white rounded-xl p-2 shadow-sm shadow-green-200">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.5 22.5c-4.14 0-7.5-3.36-7.5-7.5v-3H7c-1.1 0-2-.9-2-2V7c0-2.76 2.24-5 5-5h3c2.76 0 5 2.24 5 5v3h3c1.1 0 2 .9 2 2v3c0 4.14-3.36 7.5-7.5 7.5zm-5.5-10.5c0 3.03 2.47 5.5 5.5 5.5s5.5-2.47 5.5-5.5v-1h-11v1zm3-7V4h-5c-1.65 0-3 1.35-3 3v1h8V5z"/></svg>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-gray-900">Planti.</span>
+                </div>
+
+                <nav class="mt-4 flex flex-col gap-1">
+                    <a href="#" class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        <span class="text-sm font-medium">Dashboard</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-6 py-3 text-brand-dark bg-green-50/50 border-l-4 border-brand-dark transition-colors relative">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        <span class="text-sm font-semibold">My Orders</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <span class="text-sm font-medium">Explore</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-gray-50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        <span class="text-sm font-medium">Featured Products</span>
+                    </a>
+                </nav>
+
+                <div class="mt-8">
+                    <p class="px-6 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Settings</p>
+                    <nav class="flex flex-col gap-1">
+                        <a href="#" class="flex items-center gap-3 px-6 py-2.5 text-gray-500 hover:bg-gray-50 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span class="text-sm font-medium">Settings</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-6 py-2.5 text-gray-500 hover:bg-gray-50 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                            <span class="text-sm font-medium">Charts</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-6 py-2.5 text-gray-500 hover:bg-gray-50 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            <span class="text-sm font-medium">Trends</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-6 py-2.5 text-gray-500 hover:bg-gray-50 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            <span class="text-sm font-medium">Contact</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-6 py-2.5 text-gray-500 hover:bg-gray-50 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                            <span class="text-sm font-medium">Billing</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="p-6 mb-4">
+                <div class="bg-gradient-to-b from-brand-light to-brand/20 rounded-2xl p-5 text-center relative overflow-visible">
+                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-white rounded-full p-1.5 shadow-sm">
+                        <div class="bg-gray-900 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold">?</div>
+                    </div>
+                    <h4 class="font-bold text-gray-800 mt-4 text-sm">Help Center</h4>
+                    <p class="text-xs text-gray-500 mt-2 mb-4 leading-relaxed">Having trouble in Planti. Please contact us for more questions.</p>
+                    <button class="btn btn-sm w-full bg-white text-gray-800 border-none hover:bg-gray-50 rounded-xl shadow-sm text-xs font-semibold">Go To Help Center</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto w-full">
+            <div class="p-8 max-w-7xl mx-auto">
+                
+                <header class="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Welcome to Planti.</h1>
+                        <p class="text-sm text-gray-500 mt-1">Hello <span x-text="user"></span>, welcome back!</p>
+                    </div>
+
+                    <div class="flex items-center gap-6">
+                        <div class="relative hidden lg:block">
+                            <svg class="w-4 h-4 absolute left-4 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <input type="text" placeholder="Search Dashboard" class="input input-bordered w-64 pl-10 h-10 rounded-full bg-white border-gray-100 shadow-sm text-sm focus:outline-none focus:border-brand" />
+                            <svg class="w-4 h-4 absolute right-4 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <button class="btn btn-ghost btn-circle btn-sm bg-white shadow-sm border border-gray-100">
+                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            </button>
+                            <button class="btn btn-ghost btn-circle btn-sm bg-white shadow-sm border border-gray-100 relative">
+                                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                                <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                            </button>
+                            <div class="avatar online cursor-pointer">
+                                <div class="w-9 rounded-full ml-2">
+                                    <img src="https://i.pravatar.cc/150?u=shakir" alt="User Avatar" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="lg:col-span-2 relative bg-brand-leaf rounded-3xl overflow-hidden shadow-lg" style="background-image: url('https://images.unsplash.com/photo-1610444985552-320d3f273030?q=80&w=1000&auto=format&fit=crop'); background-size: cover; background-position: center;">
+                        <div class="absolute inset-0 bg-black/40"></div> <div class="relative z-10 p-10 flex flex-col justify-center h-full">
+                            <h2 class="text-3xl font-bold text-white mb-2 max-w-sm">Create and sell extraordinary products</h2>
+                            <p class="text-gray-200 text-sm mb-6 max-w-sm font-light">The world's first and largest handmade products marketplace</p>
+                            <div class="flex gap-4">
+                                <button class="btn bg-white hover:bg-gray-100 text-gray-900 border-none rounded-xl px-6">Explore More</button>
+                                <button class="btn btn-outline text-white hover:bg-white/20 border-white rounded-xl px-6">Top Sellers</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-brand-light rounded-3xl p-8 relative overflow-hidden flex flex-col shadow-sm">
+                        <div class="absolute top-0 right-0 w-32 h-32 border border-brand/30 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                        <div class="absolute top-4 right-4 w-24 h-24 border border-brand/30 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                        
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 relative z-10">My Stats</h3>
+                        <div class="flex gap-6 mb-auto relative z-10">
+                            <div>
+                                <p class="text-xs text-gray-600 font-medium mb-1">Today</p>
+                                <p class="text-lg font-bold text-gray-900">4 Orders</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-600 font-medium mb-1">This Month</p>
+                                <p class="text-lg font-bold text-gray-900">173 Orders</p>
+                            </div>
+                        </div>
+
+                        <a href="#" class="text-sm font-semibold text-gray-800 hover:text-brand-dark flex items-center gap-1 mt-6 transition-colors z-10">
+                            Go to my orders <span aria-hidden="true">&rarr;</span>
+                        </a>
+
+                        <div class="absolute -bottom-4 right-0 w-32 h-32 z-0">
+                            <img src="https://images.unsplash.com/photo-1596162954151-cdcb92b1cb5b?auto=format&fit=crop&q=80&w=200&h=200" alt="Plant Decoration" class="w-full h-full object-cover rounded-tl-full mix-blend-multiply opacity-80" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <div class="lg:col-span-2 flex flex-col gap-8">
+                        
+                        <section>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold text-brand-dark">My Listings</h3>
+                                <a href="#" class="text-xs font-semibold text-gray-400 hover:text-gray-600">View All &rarr;</a>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-shadow cursor-pointer">
+                                    <div class="h-32 w-full rounded-xl mb-4 overflow-hidden bg-gray-50 flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1545241047-6083a36a0d24?auto=format&fit=crop&q=80&w=200" alt="Annual Vinca" class="h-full object-contain mix-blend-multiply" />
+                                    </div>
+                                    <h4 class="font-bold text-gray-800 text-sm">Annual Vinca</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center relative hover:shadow-md transition-shadow cursor-pointer">
+                                    <button class="absolute top-3 right-3 bg-gray-50 rounded-full p-1 hover:bg-gray-100">
+                                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                    </button>
+                                    <div class="h-32 w-full rounded-xl mb-4 overflow-hidden bg-gray-50 flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1601985705806-5b9a71f6004f?auto=format&fit=crop&q=80&w=200" alt="Asteraceae" class="h-full object-contain mix-blend-multiply" />
+                                    </div>
+                                    <h4 class="font-bold text-gray-800 text-sm">Asteraceae</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center hover:shadow-md transition-shadow cursor-pointer">
+                                    <div class="h-32 w-full rounded-xl mb-4 overflow-hidden bg-gray-50 flex items-center justify-center">
+                                        <img src="https://images.unsplash.com/photo-1616047006789-b7af5afb8c20?auto=format&fit=crop&q=80&w=200" alt="Apocynceae" class="h-full object-contain mix-blend-multiply" />
+                                    </div>
+                                    <h4 class="font-bold text-gray-800 text-sm">Apocynceae</h4>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-auto">
+                            <div>
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="text-sm font-bold text-brand-dark">Top Sellers</h4>
+                                    <a href="#" class="text-xs text-gray-400 hover:text-gray-600">View All &rarr;</a>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                                    <div class="avatar-group -space-x-3 rtl:space-x-reverse">
+                                        <div class="avatar"><div class="w-8"><img src="https://i.pravatar.cc/150?u=1" /></div></div>
+                                        <div class="avatar"><div class="w-8"><img src="https://i.pravatar.cc/150?u=2" /></div></div>
+                                        <div class="avatar"><div class="w-8"><img src="https://i.pravatar.cc/150?u=3" /></div></div>
+                                        <div class="avatar"><div class="w-8"><img src="https://i.pravatar.cc/150?u=4" /></div></div>
+                                    </div>
+                                    <div class="text-right border-l border-gray-100 pl-4">
+                                        <p class="text-xs font-bold text-gray-800">1,542 plants sold</p>
+                                        <p class="text-[10px] text-gray-400">10 sellers <span class="mx-1">|</span> 7 days</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="text-sm font-bold text-brand-dark">Featured Sellers</h4>
+                                    <a href="#" class="text-xs text-gray-400 hover:text-gray-600">View All &rarr;</a>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                                    <div class="avatar-group -space-x-3 rtl:space-x-reverse">
+                                        <div class="avatar"><div class="w-8"><img src="https://i.pravatar.cc/150?u=5" /></div></div>
+                                        <div class="avatar"><div class="w-8"><img src="https://i.pravatar.cc/150?u=6" /></div></div>
+                                        <div class="avatar"><div class="w-8"><img src="https://i.pravatar.cc/150?u=7" /></div></div>
+                                        <div class="avatar"><div class="w-8"><img src="https://i.pravatar.cc/150?u=8" /></div></div>
+                                    </div>
+                                    <div class="text-right border-l border-gray-100 pl-4">
+                                        <p class="text-xs font-bold text-gray-800">2,156 plants sold</p>
+                                        <p class="text-[10px] text-gray-400">10 sellers <span class="mx-1">|</span> 7 days</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold text-brand-dark">Recent Activity</h3>
+                            <a href="#" class="text-xs font-semibold text-gray-400 hover:text-gray-600">View All &rarr;</a>
+                        </div>
+
+                        <div class="flex flex-col gap-6">
+                            <div class="flex items-start gap-4">
+                                <div class="avatar"><div class="w-10 rounded-full"><img src="https://i.pravatar.cc/150?u=a" /></div></div>
+                                <div class="flex-1">
+                                    <h5 class="text-sm font-bold text-gray-800">Ageratum houstonianum</h5>
+                                    <p class="text-xs text-gray-400 mt-0.5">Ordered a new plant</p>
+                                </div>
+                                <span class="text-[10px] font-medium text-gray-300">3 min ago</span>
+                            </div>
+                            
+                            <div class="flex items-start gap-4">
+                                <div class="avatar"><div class="w-10 rounded-full"><img src="https://i.pravatar.cc/150?u=b" /></div></div>
+                                <div class="flex-1">
+                                    <h5 class="text-sm font-bold text-gray-800">Tagetes erecta</h5>
+                                    <p class="text-xs text-gray-400 mt-0.5">Ordered a new plant</p>
+                                </div>
+                                <span class="text-[10px] font-medium text-gray-300">3 min ago</span>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="avatar"><div class="w-10 rounded-full"><img src="https://i.pravatar.cc/150?u=c" /></div></div>
+                                <div class="flex-1">
+                                    <h5 class="text-sm font-bold text-gray-800">Catharanthus roseus</h5>
+                                    <p class="text-xs text-gray-400 mt-0.5">Ordered a new plant</p>
+                                </div>
+                                <span class="text-[10px] font-medium text-gray-300">3 min ago</span>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="avatar"><div class="w-10 rounded-full"><img src="https://i.pravatar.cc/150?u=d" /></div></div>
+                                <div class="flex-1">
+                                    <h5 class="text-sm font-bold text-gray-800">Sutera cordata</h5>
+                                    <p class="text-xs text-gray-400 mt-0.5">Ordered a new plant</p>
+                                </div>
+                                <span class="text-[10px] font-medium text-gray-300">3 min ago</span>
+                            </div>
+
+                            <div class="flex items-start gap-4">
+                                <div class="avatar"><div class="w-10 rounded-full"><img src="https://i.pravatar.cc/150?u=e" /></div></div>
+                                <div class="flex-1">
+                                    <h5 class="text-sm font-bold text-gray-800">American Marigold</h5>
+                                    <p class="text-xs text-gray-400 mt-0.5">Ordered a new plant</p>
+                                </div>
+                                <span class="text-[10px] font-medium text-gray-300">3 min ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

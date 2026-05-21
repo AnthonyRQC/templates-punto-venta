@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es" x-data="{ isDark: false, sidebarOpen: true, activeTab: 'orders' }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planti Dashboard - Smooth Animation</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            light: '#ECF4E5',   
+                            DEFAULT: '#6FA83A', 
+                            dark: '#527E2B',    
+                            leaf: '#2F4A19'     
+                        },
+                        surface: {
+                            DEFAULT: '#f8fafc', 
+                            dark: '#0f172a'     
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        /* UNIFICACIÓN DE TRANSICIONES: Evita conflictos entre el ancho y el cambio de color */
+        .sidebar-transition { 
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-surface dark:bg-surface-dark text-gray-800 dark:text-slate-200 font-sans transition-colors duration-300">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside 
+            class="bg-white dark:bg-slate-800 border-r border-gray-100 dark:border-slate-700 flex flex-col justify-between relative z-20 sidebar-transition"
+            :class="sidebarOpen ? 'w-64' : 'w-20'">
+            
+            <button 
+                @click="sidebarOpen = !sidebarOpen"
+                class="absolute -right-3 top-20 bg-white dark:bg-slate-700 border border-gray-100 dark:border-slate-600 rounded-full p-1 shadow-md hover:text-brand dark:hover:text-brand-light dark:text-slate-300 transition-all z-30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform duration-300" :class="!sidebarOpen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+
+            <div>
+                <div class="p-6 flex items-center gap-3 overflow-hidden">
+                    <div class="bg-brand text-white rounded-xl p-2 shadow-sm shrink-0">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.5 22.5c-4.14 0-7.5-3.36-7.5-7.5v-3H7c-1.1 0-2-.9-2-2V7c0-2.76 2.24-5 5-5h3c2.76 0 5 2.24 5 5v3h3c1.1 0 2 .9 2 2v3c0 4.14-3.36 7.5-7.5 7.5zm-5.5-10.5c0 3.03 2.47 5.5 5.5 5.5s5.5-2.47 5.5-5.5v-1h-11v1zm3-7V4h-5c-1.65 0-3 1.35-3 3v1h8V5z"/></svg>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight text-gray-900 dark:text-white whitespace-nowrap transition-all duration-300 ease-in-out"
+                          :class="sidebarOpen ? 'opacity-100 max-w-sm' : 'opacity-0 max-w-0 overflow-hidden'">Planti.</span>
+                </div>
+
+                <nav class="mt-4 flex flex-col gap-1">
+                    <template x-for="(item, id) in {
+                        'dashboard': { icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', label: 'Dashboard' },
+                        'orders': { icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', label: 'My Orders' },
+                        'explore': { icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', label: 'Explore' }
+                    }">
+                        <a href="#" 
+                           @click.prevent="activeTab = id"
+                           class="flex items-center gap-3 px-6 py-3 transition-all duration-200 border-l-4"
+                           :class="activeTab === id 
+                                ? 'text-brand-dark dark:text-brand bg-brand-light dark:bg-brand/10 border-brand-dark dark:border-brand' 
+                                : 'text-gray-400 dark:text-slate-400 border-transparent hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-gray-600 dark:hover:text-slate-200'">
+                            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.icon"></path>
+                            </svg>
+                            <span class="text-sm font-semibold whitespace-nowrap transition-all duration-300 ease-in-out" 
+                                  :class="sidebarOpen ? 'opacity-100 max-w-sm' : 'opacity-0 max-w-0 overflow-hidden'" 
+                                  x-text="item.label"></span>
+                        </a>
+                    </template>
+                </nav>
+
+                <div class="mt-8 overflow-hidden">
+                    <p class="px-6 text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2 whitespace-nowrap transition-all duration-300 ease-in-out" 
+                       :class="sidebarOpen ? 'opacity-100 max-w-sm' : 'opacity-0 max-w-0 overflow-hidden'">Settings</p>
+                    <nav class="flex flex-col gap-1">
+                        <template x-for="item in ['Settings', 'Charts', 'Contact']">
+                            <a href="#" 
+                               @click.prevent="activeTab = item.toLowerCase()"
+                               class="flex items-center gap-3 px-6 py-2 transition-all duration-200 border-l-4"
+                               :class="activeTab === item.toLowerCase() 
+                                    ? 'text-brand-dark dark:text-brand bg-brand-light dark:bg-brand/10 border-brand-dark dark:border-brand' 
+                                    : 'text-gray-400 dark:text-slate-400 border-transparent hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-gray-600 dark:hover:text-slate-200'">
+                                <div class="w-6 h-6 flex items-center justify-center shrink-0">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-current"></div>
+                                </div>
+                                <span class="text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out" 
+                                      :class="sidebarOpen ? 'opacity-100 max-w-sm' : 'opacity-0 max-w-0 overflow-hidden'" 
+                                      x-text="item"></span>
+                            </a>
+                        </template>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="p-4 overflow-hidden shrink-0">
+                <div x-show="sidebarOpen" x-transition.duration.300ms
+                     class="bg-gradient-to-b from-brand-light dark:from-slate-700 to-transparent dark:to-transparent border border-brand/20 dark:border-slate-600 rounded-2xl p-4 text-center">
+                    <h4 class="font-bold text-gray-800 dark:text-slate-200 text-xs">Help Center</h4>
+                    <button class="btn btn-xs w-full bg-white dark:bg-slate-600 text-gray-800 dark:text-slate-200 border-none hover:bg-gray-50 dark:hover:bg-slate-500 rounded-lg shadow-sm mt-3 text-[10px]">Go To Center</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto">
+            
+            <header class="p-8 flex justify-between items-center bg-white/70 dark:bg-slate-900/70 backdrop-blur-md sticky top-0 z-10 border-b border-gray-100 dark:border-slate-800 transition-colors duration-300">
+                <div class="flex items-center gap-4">
+                    <button @click="sidebarOpen = !sidebarOpen" class="md:hidden btn btn-ghost btn-sm text-gray-600 dark:text-slate-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome to Planti.</h1>
+                        <p class="text-xs text-gray-400 dark:text-slate-400">Manage your workspace effortlessly.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <label class="swap swap-rotate btn btn-circle btn-sm btn-ghost bg-white dark:bg-slate-800 shadow-sm border border-gray-100 dark:border-slate-700 text-gray-500 dark:text-slate-300">
+                        <input type="checkbox" x-model="isDark" />
+                        <svg class="swap-on w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42 1.42"/></svg>
+                        <svg class="swap-off w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </label>
+
+                    <div class="hidden sm:flex items-center bg-white dark:bg-slate-800 rounded-full px-4 py-2 border border-gray-100 dark:border-slate-700 shadow-sm">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input type="text" placeholder="Search..." class="bg-transparent border-none text-xs ml-2 focus:ring-0 w-32 text-gray-700 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none">
+                    </div>
+                    
+                    <div class="avatar online">
+                        <div class="w-8 rounded-full ring ring-brand ring-offset-base-100 dark:ring-offset-slate-900 ring-offset-2">
+                            <img src="https://i.pravatar.cc/150?u=admin" />
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-brand-leaf rounded-3xl p-8 text-white relative overflow-hidden shadow-lg border border-brand-leaf">
+                        <h2 class="text-2xl font-bold relative z-10">System Dashboard</h2>
+                        <p class="text-sm text-brand-light relative z-10 mt-2 opacity-90">Gestión de recursos y análisis de datos en tiempo real.</p>
+                        <button class="btn btn-sm bg-brand hover:bg-brand-light border-none text-brand-leaf mt-6 relative z-10 font-bold px-6">Ver Reporte</button>
+                        <div class="absolute right-0 bottom-0 w-64 h-64 bg-brand rounded-full blur-3xl opacity-20 translate-x-1/3 translate-y-1/3"></div>
+                    </div>
+
+                    <div class="bg-brand-light dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-brand/20 dark:border-slate-700 flex flex-col justify-center">
+                        <h3 class="font-bold text-brand-dark dark:text-brand-light">Actividad Reciente</h3>
+                        <div class="mt-4 flex items-end justify-between">
+                            <div>
+                                <span class="text-4xl font-black text-gray-900 dark:text-white">1,248</span>
+                                <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 mt-1">Registros procesados</p>
+                            </div>
+                            <div class="bg-brand/20 dark:bg-brand/10 p-2 rounded-xl text-brand-dark dark:text-brand">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-3xl p-12 text-center border-dashed shadow-sm">
+                    <div class="w-16 h-16 bg-gray-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+                    <p class="text-gray-500 dark:text-slate-400 font-medium">Renderizando módulo: <span class="uppercase font-bold text-brand-dark dark:text-brand" x-text="activeTab"></span></p>
+                    <p class="text-xs text-gray-400 dark:text-slate-500 mt-2">Los componentes de esta vista se cargarán aquí.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
