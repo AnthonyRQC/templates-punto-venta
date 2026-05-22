@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es" x-data="{ isDark: false, sidebarOpen: true, activeTab: 'orders' }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planti Dashboard - Sincronización OCR</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f5f9f0',
+                            100: '#ECF4E5',   // light
+                            200: '#d7e8c6',
+                            300: '#bcda9e',
+                            400: '#9bc66e',
+                            500: '#7cb34a',
+                            600: '#6FA83A',   // DEFAULT
+                            700: '#527E2B',   // dark
+                            800: '#426524',
+                            900: '#2F4A19',   // leaf
+                            950: '#17270a',
+                            light: '#ECF4E5',   
+                            DEFAULT: '#6FA83A', 
+                            dark: '#527E2B',    
+                            leaf: '#2F4A19'     
+                        },
+                        surface: {
+                            DEFAULT: '#f8fafc', 
+                            dark: '#0f172a'     
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        .sidebar-transition { 
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-surface dark:bg-surface-dark text-gray-800 dark:text-slate-200 font-sans transition-colors duration-300">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside hx-get="sidebar.html" hx-trigger="load" hx-swap="outerHTML"></aside>
+
+        <main class="flex-1 overflow-y-auto">
+            
+            <header hx-get="navbar.html" hx-trigger="load" hx-swap="outerHTML"></header>
+
+            <div class="p-8">
+                <div x-data="ocrApp()">
+
+                    <div class="flex justify-between items-end mb-6">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Sincronización OCR</h1>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Sube un PDF para analizar nuevos productos y cambios de precios.</p>
+                        </div>
+                    </div>
+
+                    <div x-show="!analisisCompletado" class="max-w-2xl mx-auto bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 mt-10">
+                        
+                        <div x-show="error" x-text="error" class="mb-4 p-4 text-sm text-red-700 bg-red-50 dark:bg-red-900/30 dark:text-red-400 rounded-xl" style="display: none;"></div>
+
+                        <div class="flex items-center justify-center w-full">
+                            <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-brand-300 dark:border-brand-700 border-dashed rounded-xl cursor-pointer bg-brand-50 dark:bg-slate-900 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors" :class="{'opacity-50 pointer-events-none': cargando}">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <svg x-show="!cargando" class="w-10 h-10 mb-3 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                    <span x-show="cargando" class="loading loading-spinner loading-lg text-brand-600 mb-3" style="display: none;"></span>
+                                    
+                                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold text-brand-600 dark:text-brand-400">Haz clic para subir</span> o arrastra tu PDF aquí</p>
+                                    <p class="text-xs text-gray-400" x-text="cargando ? 'Analizando documento con OCR...' : 'Solo archivos PDF'"></p>
+                                </div>
+                                <input id="dropzone-file" type="file" class="hidden" accept=".pdf" multiple @change="enviarPDF($event)" :disabled="cargando" />            
+                            </label>
+                        </div>
+                    </div>
+
+                    <div x-show="analisisCompletado" style="display: none;">
+                        <div class="alert alert-success bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 mb-6">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <div>
+                                <h3 class="font-bold">¡Análisis Completado!</h3>
+                                <div class="text-sm">Se han procesado los datos. Revisa las tablas a continuación.</div>
+                            </div>
+                            <button class="btn btn-sm btn-ghost" @click="resetear()">Subir otro archivo</button>
+                        </div>
+
+                        <div class="border-b border-gray-200 dark:border-slate-700 mb-6 flex gap-6 mt-8">
+                            <button @click="cambiarTab('actualizar')" 
+                                    :class="tabActiva === 'actualizar' ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'"
+                                    class="pb-3 text-sm font-medium border-b-2 transition-colors">
+                                Para Actualizar 
+                                <span :class="tabActiva === 'actualizar' ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400'" 
+                                      class="ml-1 py-0.5 px-2 rounded-full text-xs transition-colors" x-text="datosAnalisis.resumen.total_actualizar"></span>
+                            </button>
+                            <button @click="cambiarTab('nuevos')" 
+                                    :class="tabActiva === 'nuevos' ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'"
+                                    class="pb-3 text-sm font-medium border-b-2 transition-colors">
+                                Nuevos Productos 
+                                <span :class="tabActiva === 'nuevos' ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400'" 
+                                      class="ml-1 py-0.5 px-2 rounded-full text-xs transition-colors" x-text="datosAnalisis.resumen.total_nuevos"></span>
+                            </button>
+                            <button @click="cambiarTab('intactos')" 
+                                    :class="tabActiva === 'intactos' ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'"
+                                    class="pb-3 text-sm font-medium border-b-2 transition-colors">
+                                Sin Cambios (Historial)
+                                <span :class="tabActiva === 'intactos' ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400'" 
+                                      class="ml-1 py-0.5 px-2 rounded-full text-xs transition-colors" x-text="datosAnalisis.resumen.total_sin_cambios"></span>
+                            </button>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden min-h-[200px]">
+                            
+                            <div x-show="tabActiva === 'actualizar'" class="overflow-x-auto">
+                                <table class="table w-full">
+                                    <thead class="bg-gray-50/50 dark:bg-slate-800/50 text-gray-600 dark:text-gray-300 font-medium border-b border-gray-100 dark:border-slate-700">
+                                        <tr>
+                                            <th class="w-12 px-6 py-4">
+                                                <label><input type="checkbox" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600" 
+                                                              :checked="todosSeleccionados" @change="toggleTodos($event.target.checked)" /></label>
+                                            </th>
+                                            <th class="py-4">Código</th>
+                                            <th class="py-4">Comparación de Nombre Original</th>
+                                            <th class="py-4">Comparación de Precio</th>
+                                            <th class="py-4 text-center">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-600 dark:text-gray-300">
+                                        <template x-for="item in datosAnalisis.para_actualizar" :key="item.codigo">
+                                            <tr class="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-50 dark:border-slate-700/50">
+                                                <td class="px-6">
+                                                    <label><input type="checkbox" :value="item.codigo" x-model="seleccionadosActualizar" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600" /></label>
+                                                </td>
+                                                <td><span class="font-mono text-sm font-medium text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-900/30 px-2 py-1 rounded inline-block" x-text="item.codigo"></span></td>
+                                                
+                                                <td>
+                                                    <div class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">BD: <span class="text-gray-600 dark:text-gray-300" x-text="item.descripcion_bd"></span></div>
+                                                    <div :class="item.cambios.nombre ? 'text-brand-700 dark:text-brand-400 font-medium' : 'text-gray-400 dark:text-gray-500'">
+                                                        <span x-show="item.cambios.nombre">↳ Fac: </span><span x-text="item.cambios.nombre ? item.descripcion_pdf : 'Sin cambios'"></span>
+                                                    </div>
+                                                </td>
+
+                                                <td>
+                                                    <div class="text-xs text-gray-400 dark:text-gray-500 mb-0.5">BD: Bs. <span class="text-gray-600 dark:text-gray-300" x-text="item.precio_actual"></span></div>
+                                                    <div :class="item.cambios.precio ? 'text-green-600 dark:text-green-400 font-medium' : 'text-gray-400 dark:text-gray-500'">
+                                                        <span x-show="item.cambios.precio">↳ Fac: Bs. </span><span x-text="item.cambios.precio ? item.precio_nuevo : 'Sin cambios'"></span>
+                                                    </div>
+                                                </td>
+
+                                                <td class="text-center">
+                                                    <button class="btn btn-xs bg-white dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-slate-600" @click="abrirModalRevision(item)">
+                                                        Ver Detalles
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                        <tr x-show="datosAnalisis.para_actualizar.length === 0">
+                                            <td colspan="5" class="text-center py-8 text-gray-400 dark:text-gray-500">No hay productos que requieran actualización.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div x-show="tabActiva === 'nuevos'" x-cloak class="overflow-x-auto">
+                                <table class="table w-full">
+                                    <thead class="bg-gray-50/50 dark:bg-slate-800/50 text-gray-600 dark:text-gray-300 font-medium border-b border-gray-100 dark:border-slate-700">
+                                        <tr>
+                                            <th class="py-4 pl-6">Código Extraído</th>
+                                            <th class="py-4 flex items-center gap-2">Descripción Extraída <span class="badge badge-warning badge-xs">Nuevo</span></th>
+                                            <th class="py-4">Precio Inicial</th>
+                                            <th class="py-4">Proveedor / NIT</th>
+                                            <th class="py-4 text-center">N° Factura</th>
+                                            <th class="py-4 text-center">Fecha Fac.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-600 dark:text-gray-300">
+                                        <template x-for="item in datosAnalisis.nuevos" :key="item.codigo">
+                                            <tr class="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-50 dark:border-slate-700/50">
+                                                <td class="pl-6"><span class="font-mono text-sm font-medium text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded inline-block" x-text="item.codigo"></span></td>
+                                                <td class="font-medium text-gray-900 dark:text-white" x-text="item.descripcion_pdf"></td>
+                                                <td class="font-medium text-green-600 dark:text-green-400">Bs. <span x-text="item.precio_nuevo"></span></td>
+                                                <td>
+                                                    <div class="font-medium text-gray-800 dark:text-gray-200" x-text="item.proveedor"></div>
+                                                    <div class="text-xs text-gray-400 dark:text-gray-500" x-text="'NIT: ' + item.nit"></div>
+                                                </td>
+                                                <td class="text-center font-mono text-sm" x-text="item.nro_factura"></td>
+                                                <td class="text-center text-sm" x-text="item.fecha_factura"></td>
+                                            </tr>
+                                        </template>
+                                        <tr x-show="datosAnalisis.nuevos.length === 0">
+                                            <td colspan="6" class="text-center py-8 text-gray-400 dark:text-gray-500">No se detectaron productos nuevos en este lote.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div x-show="tabActiva === 'intactos'" x-cloak class="overflow-x-auto">
+                                <table class="table w-full">
+                                    <thead class="bg-gray-50/50 dark:bg-slate-800/50 text-gray-600 dark:text-gray-300 font-medium border-b border-gray-100 dark:border-slate-700">
+                                        <tr>
+                                            <th class="py-4 pl-6">Código</th>
+                                            <th class="py-4">Descripción Consolidada</th>
+                                            <th class="py-4">Precio (Paquete)</th>
+                                            <th class="py-4 text-center">Estado de Sincronización</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-600 dark:text-gray-300">
+                                        <template x-for="item in datosAnalisis.sin_cambios" :key="item.codigo">
+                                            <tr class="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-50 dark:border-slate-700/50 opacity-80">
+                                                <td class="pl-6"><span class="font-mono text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded inline-block" x-text="item.codigo"></span></td>
+                                                <td class="font-medium text-gray-700 dark:text-gray-200" x-text="item.descripcion_bd"></td>
+                                                <td class="font-medium text-gray-700 dark:text-gray-200">Bs. <span x-text="item.precio_actual"></span></td>
+                                                <td class="text-center">
+                                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium border border-green-200 dark:border-green-800">
+                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                        Al día
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                        <tr x-show="datosAnalisis.sin_cambios.length === 0">
+                                            <td colspan="4" class="text-center py-8 text-gray-400 dark:text-gray-500">No hay productos intactos en este análisis.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div x-show="tabActiva === 'actualizar' && seleccionadosActualizar.length > 0" 
+                             x-transition.duration.300ms
+                             class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.2)] rounded-full border border-gray-100 dark:border-slate-700 p-2 flex items-center gap-4 z-50">
+                            <div class="flex items-center gap-3 pl-4 pr-2 border-r border-gray-100 dark:border-slate-700">
+                                <div class="flex items-center justify-center w-8 h-8 bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 rounded-full font-bold text-sm" x-text="seleccionadosActualizar.length"></div>
+                                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">cambios seleccionados</span>
+                            </div>
+                            <button @click="procesarLoteFinal()" class="btn btn-sm bg-brand-600 hover:bg-brand-700 text-white border-none rounded-full px-6 ml-2 shadow-md shadow-brand-500/20">
+                                Aplicar Actualizaciones
+                            </button>
+                        </div>
+                    </div>
+
+                    <dialog id="modal_revision" class="modal modal-bottom sm:modal-middle">
+                        <div class="modal-box w-11/12 max-w-2xl bg-white dark:bg-slate-800 relative">
+                            
+                            <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-gray-500 dark:text-gray-400" @click="cerrarModalRevision()">✕</button>
+                            
+                            <h3 class="font-bold text-xl mb-6 text-gray-900 dark:text-white">Comparación de Producto</h3>
+                            
+                            <template x-if="itemEnRevision">
+                                <div class="flex flex-col gap-6">
+                                    
+                                    <div class="bg-gray-50 dark:bg-slate-900/50 p-5 rounded-xl border border-gray-100 dark:border-slate-700" x-show="itemEnRevision.cambios.nombre">
+                                        <h4 class="font-semibold mb-4 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-slate-700 pb-2">Nombre Original (Proveedor)</h4>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Actual en BD</span>
+                                                <p class="mt-1 text-gray-800 dark:text-gray-200 text-sm font-medium" x-text="itemEnRevision.descripcion_bd"></p>
+                                                <p class="text-xs text-gray-400 mt-1 font-medium">Registrado el: <span x-text="itemEnRevision.fecha_ultimo_registro"></span></p>
+                                            </div>
+                                            <div class="border-l border-gray-200 dark:border-slate-700 pl-4">
+                                                <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Nuevo en Factura</span>
+                                                <p class="mt-1 font-medium text-brand-700 dark:text-brand-300 text-sm" x-text="itemEnRevision.descripcion_pdf"></p>
+                                                <p class="text-xs text-brand-400 mt-1 font-medium">Factura del: <span x-text="itemEnRevision.fecha_factura"></span></p>
+                                                
+                                                <label class="label cursor-pointer justify-start gap-2 mt-3">
+                                                    <input type="checkbox" class="toggle toggle-sm checked:bg-brand-600" x-model="itemEnRevision._actualizar_nombre" />
+                                                    <span class="label-text font-medium text-gray-700 dark:text-gray-300">Actualizar Nombre Original</span> 
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-gray-50 dark:bg-slate-900/50 p-5 rounded-xl border border-gray-100 dark:border-slate-700" x-show="itemEnRevision.cambios.precio">
+                                        <h4 class="font-semibold mb-4 text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-slate-700 pb-2">Precio de Compra (Paquete)</h4>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Actual en BD</span>
+                                                <p class="mt-1 text-gray-800 dark:text-gray-200 font-medium">Bs. <span x-text="itemEnRevision.precio_actual"></span></p>
+                                                <p class="text-xs text-gray-400 mt-1 font-medium">Registrado el: <span x-text="itemEnRevision.fecha_ultimo_registro"></span></p>
+                                            </div>
+                                            <div class="border-l border-gray-200 dark:border-slate-700 pl-4">
+                                                <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Nuevo en Factura</span>
+                                                <p class="mt-1 font-medium text-brand-700 dark:text-brand-300">Bs. <span x-text="itemEnRevision.precio_nuevo"></span></p>
+                                                <p class="text-xs text-brand-400 mt-1 font-medium">Factura del: <span x-text="itemEnRevision.fecha_factura"></span></p>
+                                                
+                                                <label class="label cursor-pointer justify-start gap-2 mt-3">
+                                                    <input type="checkbox" class="toggle toggle-sm checked:bg-brand-600" x-model="itemEnRevision._actualizar_precio" />
+                                                    <span class="label-text font-medium text-gray-700 dark:text-gray-300">Actualizar Precio</span> 
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </template>
+
+                            <div class="modal-action mt-8 border-t border-gray-100 dark:border-slate-700 pt-4">
+                                <button class="btn bg-brand-600 hover:bg-brand-700 text-white border-none px-8" @click="cerrarModalRevision()">Listo</button>
+                            </div>
+                        </div>
+                        
+                        <form method="dialog" class="modal-backdrop">
+                            <button @click="cerrarModalRevision()">cerrar</button>
+                        </form>
+                    </dialog>
+                    
+                    <div x-show="mostrarToast" 
+                         x-transition.opacity.duration.300ms
+                         class="toast toast-top toast-end z-[100]" 
+                         style="display: none;">
+                        <div class="alert alert-success bg-green-500 text-white shadow-lg font-medium border-none rounded-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span x-text="mensajeToast"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('ocrApp', () => ({
+                cargando: false,
+                error: null,
+                analisisCompletado: false,
+                mostrarToast: false,
+                mensajeToast: '',
+                
+                datosAnalisis: {
+                    resumen: { total_actualizar: 0, total_nuevos: 0 },
+                    para_actualizar: [],
+                    nuevos: [],
+                    sin_cambios: []
+                },
+                
+                tabActiva: 'actualizar',
+                seleccionadosActualizar: [],
+                seleccionadosNuevos: [],
+                itemEnRevision: null,
+
+                async init() {
+                    this.cargando = true;
+                    try {
+                        const respuesta = await fetch('mock_ocr_data.json');
+                        const json = await respuesta.json();
+
+                        json.data.para_actualizar.forEach(item => {
+                            item._actualizar_precio = item.cambios.precio;
+                            item._actualizar_nombre = item.cambios.nombre;
+                        });
+
+                        this.datosAnalisis = json.data;
+                        this.analisisCompletado = true;
+                    } catch (e) {
+                        console.error("No se pudo auto-cargar la data:", e);
+                    } finally {
+                        this.cargando = false;
+                    }
+                },
+
+                get cantidadSeleccionada() {
+                    return this.tabActiva === 'actualizar' 
+                        ? this.seleccionadosActualizar.length 
+                        : this.seleccionadosNuevos.length;
+                },
+
+                get todosSeleccionados() {
+                    if (this.tabActiva === 'actualizar') {
+                        return this.seleccionadosActualizar.length === this.datosAnalisis.para_actualizar.length && this.datosAnalisis.para_actualizar.length > 0;
+                    } else {
+                        return this.seleccionadosNuevos.length === this.datosAnalisis.nuevos.length && this.datosAnalisis.nuevos.length > 0;
+                    }
+                },
+
+                cambiarTab(tab) {
+                    this.tabActiva = tab;
+                },
+
+                toggleTodos(marcar) {
+                    if (this.tabActiva === 'actualizar') {
+                        this.seleccionadosActualizar = marcar ? this.datosAnalisis.para_actualizar.map(item => item.codigo) : [];
+                    } else {
+                        this.seleccionadosNuevos = marcar ? this.datosAnalisis.nuevos.map(item => item.codigo) : [];
+                    }
+                },
+
+                abrirModalRevision(item) {
+                    this.itemEnRevision = item;
+                    document.getElementById('modal_revision').showModal();
+                },
+
+                cerrarModalRevision() {
+                    if (this.itemEnRevision._actualizar_precio || this.itemEnRevision._actualizar_nombre) {
+                        if (!this.seleccionadosActualizar.includes(this.itemEnRevision.codigo)) {
+                            this.seleccionadosActualizar.push(this.itemEnRevision.codigo);
+                        }
+                    }
+                    document.getElementById('modal_revision').close();
+                    this.itemEnRevision = null;
+                },
+
+                async enviarPDF(evento) {
+                    const archivos = evento.target.files;
+                    if (archivos.length === 0) return;
+
+                    for (let i = 0; i < archivos.length; i++) {
+                        if (archivos[i].type !== "application/pdf") {
+                            this.error = `El archivo "${archivos[i].name}" no es un PDF válido. Por favor, selecciona solo archivos PDF.`;
+                            return;
+                        }
+                    }
+
+                    this.error = null;
+                    this.cargando = true;
+
+                    try {
+                        // SIMULACIÓN DE LLAMADA API A UN JSON LOCAL
+                        await new Promise(r => setTimeout(r, 1500)); // Simulamos tiempo de OCR
+                        const respuesta = await fetch('mock_ocr_data.json');
+                        const json = await respuesta.json();
+
+                        if (!respuesta.ok) throw new Error("Error leyendo el archivo JSON de prueba");
+
+                        json.data.para_actualizar.forEach(item => {
+                            item._actualizar_precio = item.cambios.precio;
+                            item._actualizar_nombre = item.cambios.nombre;
+                        });
+
+                        this.datosAnalisis = json.data;
+                        this.analisisCompletado = true;
+                        this.seleccionadosActualizar = [];
+                        this.seleccionadosNuevos = [];
+
+                    } catch (e) {
+                        this.error = "Error al conectar con la base de datos de simulación: " + e.message;
+                    } finally {
+                        this.cargando = false;
+                        evento.target.value = ''; 
+                    }
+                },
+
+                async procesarLoteFinal() {
+                    if (this.seleccionadosActualizar.length === 0) return;
+                    
+                    this.cargando = true;
+                    
+                    try {
+                        // SIMULAMOS EL ENVÍO AL BACKEND
+                        await new Promise(r => setTimeout(r, 800));
+
+                        this.mensajeToast = "¡Productos actualizados en el catálogo exitosamente!";
+                        this.mostrarToast = true;
+                        
+                        setTimeout(() => {
+                            this.mostrarToast = false;
+                        }, 3500);
+
+                        this.datosAnalisis.para_actualizar = this.datosAnalisis.para_actualizar.filter(
+                            item => !this.seleccionadosActualizar.includes(item.codigo)
+                        );
+
+                        this.datosAnalisis.resumen.total_actualizar = this.datosAnalisis.para_actualizar.length;
+                        this.seleccionadosActualizar = [];
+
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.cargando = false;
+                    }
+                },
+
+                resetear() {
+                    this.analisisCompletado = false;
+                    this.datosAnalisis = {
+                        resumen: { total_actualizar: 0, total_nuevos: 0 },
+                        para_actualizar: [],
+                        nuevos: [],
+                        sin_cambios: []
+                    };
+                    this.error = null;
+                    this.seleccionadosActualizar = [];
+                    this.seleccionadosNuevos = [];
+                }
+            }))
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es" x-data="{ isDark: false, sidebarOpen: true, activeTab: 'carrito' }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planti Dashboard - Carrito de Compras</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f5f9f0',
+                            100: '#ECF4E5',
+                            200: '#d7e8c6',
+                            300: '#bcda9e',
+                            400: '#9bc66e',
+                            500: '#7cb34a',
+                            600: '#6FA83A',
+                            700: '#527E2B',
+                            800: '#426524',
+                            900: '#2F4A19',
+                            light: '#ECF4E5',   
+                            DEFAULT: '#6FA83A', 
+                            dark: '#527E2B',    
+                            leaf: '#2F4A19'     
+                        },
+                        surface: {
+                            DEFAULT: '#f8fafc', 
+                            dark: '#0f172a'     
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .sidebar-transition { 
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-surface dark:bg-surface-dark text-gray-800 dark:text-slate-200 font-sans transition-colors duration-300">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar inyectado con HTMX -->
+        <aside hx-get="sidebar.html" hx-trigger="load" hx-swap="outerHTML"></aside>
+
+        <main class="flex-1 overflow-y-auto">
+            
+            <!-- Navbar inyectado con HTMX -->
+            <header hx-get="navbar.html" hx-trigger="load" hx-swap="outerHTML"></header>
+
+            <div class="p-8" x-data="cartApp()">
+                <div class="max-w-7xl mx-auto">
+                    
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                        
+                        <!-- Columna Izquierda: Lista de Productos -->
+                        <div class="xl:col-span-2">
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Carrito de Compras</h2>
+                                
+                                <!-- Encabezados de Tabla -->
+                                <div class="grid grid-cols-12 gap-4 pb-4 border-b border-gray-100 dark:border-slate-700 text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <div class="col-span-6">Producto</div>
+                                    <div class="col-span-3 text-center">Cantidad</div>
+                                    <div class="col-span-3 text-right pr-8">Precio</div>
+                                </div>
+
+                                <!-- Lista de Items -->
+                                <div class="mt-4 flex flex-col gap-4">
+                                    <template x-for="item in items" :key="item.id">
+                                        <div class="grid grid-cols-12 gap-4 items-center p-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl hover:border-brand-300 dark:hover:border-brand-700 transition-colors">
+                                            
+                                            <!-- Producto Info -->
+                                            <div class="col-span-6 flex items-center gap-4">
+                                                <div class="w-20 h-20 bg-gray-50 dark:bg-slate-700 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-slate-600">
+                                                    <img :src="item.img" :alt="item.name" class="object-cover w-full h-full mix-blend-multiply dark:mix-blend-normal">
+                                                </div>
+                                                <div>
+                                                    <h3 class="font-bold text-sm text-gray-900 dark:text-white line-clamp-2" x-text="item.name"></h3>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Presentación: <span x-text="item.detail"></span></p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Cantidad -->
+                                            <div class="col-span-3 flex justify-center">
+                                                <div class="flex items-center bg-gray-50 dark:bg-slate-900 rounded-lg p-1 border border-gray-100 dark:border-slate-700">
+                                                    <button @click="if(item.qty > 1) item.qty--" class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 transition-colors">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                                    </button>
+                                                    <span class="w-8 text-center text-sm font-semibold text-gray-900 dark:text-white" x-text="item.qty"></span>
+                                                    <button @click="item.qty++" class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 transition-colors">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Precio y Eliminar -->
+                                            <div class="col-span-3 flex items-center justify-end gap-6">
+                                                <span class="font-bold text-lg text-gray-900 dark:text-white">Bs. <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
+                                                <button @click="pedirConfirmacion(item)" class="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    
+                                    <div x-show="items.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400" x-cloak>
+                                        Tu carrito está vacío.
+                                    </div>
+                                </div>
+
+                                <!-- Botones Inferiores -->
+                                <div class="mt-8 flex justify-between items-center pt-6 border-t border-gray-100 dark:border-slate-700">
+                                    <button class="font-medium text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 px-4 py-2 transition-colors">
+                                        Volver
+                                    </button>
+                                    <button class="btn bg-[#ff3b30] hover:bg-[#d63026] text-white border-none rounded-xl px-8 shadow-sm">
+                                        Cancelar Pedido
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha: Resumen y Pagos -->
+                        <div class="xl:col-span-1 flex flex-col gap-6">
+                            
+                            <!-- Cupón -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4">Código de Descuento</h3>
+                                <div class="flex flex-col gap-3">
+                                    <input type="text" placeholder="Ingresa tu código" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-sm focus:border-brand-500 focus:ring-brand-500 rounded-xl" />
+                                    <button class="btn btn-outline border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white hover:border-brand-600 dark:border-brand-500 dark:text-brand-400 dark:hover:bg-brand-600 dark:hover:text-white rounded-xl w-full">
+                                        Aplicar Cupón
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Resumen de Orden -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-6">Resumen del Pedido</h3>
+                                <div class="flex flex-col gap-4 text-sm">
+                                    <div class="flex justify-between text-gray-500 dark:text-gray-400 font-medium">
+                                        <span>Descuento</span>
+                                        <span class="text-gray-900 dark:text-gray-200">Bs. <span x-text="discount.toFixed(2)"></span></span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-500 dark:text-gray-400 font-medium">
+                                        <span>Envío</span>
+                                        <span class="text-gray-900 dark:text-gray-200">Bs. <span x-text="delivery.toFixed(2)"></span></span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-500 dark:text-gray-400 font-medium">
+                                        <span>Impuestos</span>
+                                        <span class="text-gray-900 dark:text-gray-200">Bs. <span x-text="tax.toFixed(2)"></span></span>
+                                    </div>
+                                    <div class="pt-4 border-t border-gray-100 dark:border-slate-700 flex justify-between items-end">
+                                        <span class="text-gray-500 dark:text-gray-400 font-medium">Total</span>
+                                        <span class="text-3xl font-black text-gray-900 dark:text-white">Bs. <span x-text="total.toFixed(2)"></span></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Métodos de Pago -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4">Método de Pago</h3>
+                                
+                                <div class="grid grid-cols-2 gap-3 mb-6" x-data="{ metodoSeleccionado: 'qr' }">
+                                    <!-- Pago por QR -->
+                                    <div @click="metodoSeleccionado = 'qr'" 
+                                         :class="metodoSeleccionado === 'qr' ? 'border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-400' : 'border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'"
+                                         class="rounded-xl h-14 flex flex-col items-center justify-center cursor-pointer transition-all p-2">
+                                        <svg class="h-5 w-5 text-brand-600 dark:text-brand-400 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                        </svg>
+                                        <span class="text-xs font-semibold">Por QR</span>
+                                    </div>
+                                    
+                                    <!-- Efectivo -->
+                                    <div @click="metodoSeleccionado = 'efectivo'" 
+                                         :class="metodoSeleccionado === 'efectivo' ? 'border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-400' : 'border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'"
+                                         class="rounded-xl h-14 flex flex-col items-center justify-center cursor-pointer transition-all p-2">
+                                        <svg class="h-5 w-5 text-gray-500 dark:text-slate-400 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" :class="metodoSeleccionado === 'efectivo' && 'text-brand-600 dark:text-brand-400'">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <span class="text-xs font-semibold">Efectivo</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn bg-brand-600 hover:bg-brand-700 text-white border-none rounded-xl w-full shadow-sm">
+                                    Proceder al Pago
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Dialog / Modal de Confirmación de Eliminación -->
+                <dialog id="modal_confirmar_eliminacion" class="modal modal-bottom sm:modal-middle">
+                    <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-6 border border-gray-100 dark:border-slate-700">
+                        <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2">¿Eliminar producto?</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                            ¿Estás seguro de que deseas quitar <span class="font-semibold text-gray-900 dark:text-white" x-text="itemPorEliminar ? itemPorEliminar.name : ''"></span> de tu carrito de compras?
+                        </p>
+                        <div class="modal-action flex justify-end gap-3 mt-4">
+                            <button class="btn btn-ghost rounded-xl px-6" @click="cerrarConfirmacion()">
+                                Cancelar
+                            </button>
+                            <button class="btn bg-[#ff3b30] hover:bg-[#d63026] text-white border-none rounded-xl px-6 shadow-sm" @click="confirmarEliminacion()">
+                                Sí, eliminar
+                            </button>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarConfirmacion()">cerrar</button>
+                    </form>
+                </dialog>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('cartApp', () => ({
+                items: [
+                    { id: 1, name: 'Galletas de Chocolate Rellenas Clásicas', detail: 'Paquete 250g', price: 12.50, qty: 3, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Galletas' },
+                    { id: 2, name: 'Cereal de Maíz Azucarado Fortificado', detail: 'Caja 500g', price: 28.00, qty: 1, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Cereal' },
+                    { id: 3, name: 'Papas Fritas Corte Fino', detail: 'Bolsa 150g', price: 15.00, qty: 2, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Papas+Fritas' },
+                    { id: 4, name: 'Detergente Líquido Multiusos Aroma Floral', detail: 'Botella 2L', price: 45.00, qty: 1, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Detergente' },
+                    { id: 5, name: 'Papel Higiénico Doble Hoja', detail: 'Paquete 6 rollos', price: 22.00, qty: 1, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Papel' }
+                ],
+                delivery: 15.00,
+                discount: 0.00,
+                itemPorEliminar: null,
+                
+                get subtotal() {
+                    return this.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                },
+                get tax() {
+                    return this.subtotal * 0.13; 
+                },
+                get total() {
+                    return this.subtotal + this.delivery + this.tax - this.discount;
+                },
+                
+                pedirConfirmacion(item) {
+                    this.itemPorEliminar = item;
+                    document.getElementById('modal_confirmar_eliminacion').showModal();
+                },
+                
+                cerrarConfirmacion() {
+                    document.getElementById('modal_confirmar_eliminacion').close();
+                    this.itemPorEliminar = null;
+                },
+                
+                confirmarEliminacion() {
+                    if (this.itemPorEliminar) {
+                        this.items = this.items.filter(item => item.id !== this.itemPorEliminar.id);
+                    }
+                    this.cerrarConfirmacion();
+                }
+            }))
+        });
+    </script>
+</body>
+</html>

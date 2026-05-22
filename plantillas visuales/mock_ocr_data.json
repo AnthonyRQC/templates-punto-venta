@@ -1,0 +1,58 @@
+{
+  "message": "Análisis completado exitosamente",
+  "data": {
+    "resumen": {
+      "total_actualizar": 2,
+      "total_nuevos": 1,
+      "total_sin_cambios": 1
+    },
+    "para_actualizar": [
+      {
+        "codigo": "PRD-001",
+        "id_producto_bd": 1,
+        "descripcion_bd": "Abono Orgánico Premium 5kg",
+        "descripcion_pdf": "Abono Orgánico Extra 5kg",
+        "precio_actual": "45.00",
+        "precio_nuevo": "50.00",
+        "fecha_ultimo_registro": "15/04/2023",
+        "fecha_factura": "21/05/2026",
+        "cambios": {
+          "nombre": true,
+          "precio": true
+        }
+      },
+      {
+        "codigo": "PRD-002",
+        "id_producto_bd": 2,
+        "descripcion_bd": "Maceta de Barro 20cm",
+        "descripcion_pdf": "Maceta de Barro 20cm",
+        "precio_actual": "15.00",
+        "precio_nuevo": "18.00",
+        "fecha_ultimo_registro": "10/01/2023",
+        "fecha_factura": "21/05/2026",
+        "cambios": {
+          "nombre": false,
+          "precio": true
+        }
+      }
+    ],
+    "nuevos": [
+      {
+        "codigo": "NVO-003",
+        "descripcion_pdf": "Tierra Preparada 10kg",
+        "precio_nuevo": "30.00",
+        "proveedor": "Agroinsumos S.A.",
+        "nit": "123456789",
+        "nro_factura": "F-8902",
+        "fecha_factura": "21/05/2026"
+      }
+    ],
+    "sin_cambios": [
+      {
+        "codigo": "PRD-004",
+        "descripcion_bd": "Semillas de Girasol",
+        "precio_actual": "5.00"
+      }
+    ]
+  }
+}
