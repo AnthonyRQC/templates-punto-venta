@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es" x-data="{ isDark: $persist(false), sidebarOpen: $persist(true), activeTab: 'carrito', ventasTabs: $persist([{id: 1, nombre: 'Venta 1', activa: true}]), tabActivaId: 1 }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planti Dashboard - Carrito de Compras</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <!-- PLUGINS DE ALPINE -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@formkit/auto-animate/index.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f5f9f0', 100: '#ECF4E5', 200: '#d7e8c6', 300: '#bcda9e', 400: '#9bc66e', 500: '#7cb34a',
+                            600: '#6FA83A', 700: '#527E2B', 800: '#426524', 900: '#2F4A19',
+                            light: '#ECF4E5', DEFAULT: '#6FA83A', dark: '#527E2B', leaf: '#2F4A19'     
+                        },
+                        surface: { DEFAULT: '#f8fafc', dark: '#0f172a' }
+                    }
+                }
+            }
+        }
+        
+        document.addEventListener('htmx:load', function(evt) {
+            if (window.Alpine) {
+                Alpine.initTree(evt.detail.elt);
+            }
+        });
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .sidebar-transition { 
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-surface dark:bg-surface-dark text-gray-800 dark:text-slate-200 font-sans transition-colors duration-300">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside hx-get="sidebar.html" hx-trigger="load" hx-swap="outerHTML"></aside>
+
+        <main class="flex-1 overflow-y-auto w-full flex flex-col">
+            
+            <header hx-get="navbar.html" hx-trigger="load" hx-swap="outerHTML"></header>
+
+            <div class="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-6 pt-3 flex items-center justify-between gap-4 shrink-0">
+                <div class="flex items-center gap-1 overflow-x-auto" x-init="if(typeof autoAnimate !== 'undefined') autoAnimate($el)">
+                    <template x-for="tab in ventasTabs" :key="tab.id">
+                        <div @click="tabActivaId = tab.id" 
+                             :class="tabActivaId === tab.id 
+                                ? 'bg-surface dark:bg-surface-dark text-brand-700 dark:text-brand border-t-2 border-brand-500 font-bold rounded-t-xl' 
+                                : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 border-t-2 border-transparent cursor-pointer'"
+                             class="px-4 py-2 text-xs md:text-sm transition-all flex items-center gap-2 border-x border-gray-50 dark:border-slate-800/50 min-w-[120px] justify-between">
+                            <span x-text="tab.nombre"></span>
+                            <button x-show="ventasTabs.length > 1" @click.stop="ventasTabs = ventasTabs.filter(t => t.id !== tab.id); if(tabActivaId === tab.id) tabActivaId = ventasTabs[0].id" class="hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full p-0.5 text-gray-400 hover:text-gray-600">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    </template>
+                    
+                    <button @click="let newId = Date.now(); ventasTabs.push({id: newId, nombre: 'Venta ' + (ventasTabs.length + 1), activa: false}); tabActivaId = newId" 
+                            class="btn btn-sm btn-ghost btn-square text-brand-600 hover:bg-brand-50 dark:hover:bg-slate-800 rounded-lg mb-1" title="Nueva venta en espera">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </button>
+                </div>
+                <div class="pb-2 text-right hidden sm:block">
+                    <span class="badge badge-sm bg-brand-100 dark:bg-brand-900/30 text-brand-800 dark:text-brand-300 font-semibold rounded-md">Módulos POS Activos</span>
+                </div>
+            </div>
+
+            <div class="p-6 md:p-8 w-full flex-1" x-data="cartApp()">
+                <div class="w-full">
+                    
+                    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 md:gap-8">
+                        
+                        <!-- ================= COLUMNA IZQUIERDA: Interactiva de Detalle/Búsqueda ================= -->
+                        <div class="xl:col-span-1 flex flex-col gap-5">
+                            
+                            <!-- Buscador de Producto Modificado con Lupa -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-base text-gray-900 dark:text-white mb-3">Buscar Producto</h3>
+                                <div class="flex gap-2">
+                                    <div class="relative flex-1">
+                                        <input type="text" placeholder="Código o Nombre..." 
+                                               class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-sm focus:border-brand-500 focus:ring-brand-500 rounded-xl" />
+                                    </div>
+                                    <button class="btn bg-brand-600 hover:bg-brand-700 text-white rounded-xl border-none px-4">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- SECCIÓN 1: Más Información del Producto Seleccionado (Con Foto y Precio de Compra) -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-sm text-brand-700 dark:text-brand-400 uppercase tracking-wider mb-3">Información del Producto</h3>
+                                
+                                <template x-if="productoSeleccionado">
+                                    <div class="flex flex-col gap-3.5 text-sm">
+                                        <!-- ESPACIO PARA LA FOTO DEL PRODUCTO -->
+                                        <div class="flex items-center gap-4 p-2 bg-gray-50/50 dark:bg-slate-900/40 rounded-2xl border border-gray-100 dark:border-slate-700/60">
+                                            <div class="w-16 h-16 bg-white dark:bg-slate-700 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-slate-600 shadow-sm">
+                                                <img :src="productoSeleccionado.img" :alt="productoSeleccionado.name" class="object-cover w-full h-full mix-blend-multiply dark:mix-blend-normal">
+                                            </div>
+                                            <div class="flex-1">
+                                                <span class="text-xs text-gray-400 dark:text-gray-500 block">Nombre</span>
+                                                <p class="font-bold text-gray-900 dark:text-white line-clamp-2" x-text="productoSeleccionado.name"></p>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-3 bg-gray-50/30 dark:bg-slate-900/20 p-2 rounded-xl">
+                                            <div>
+                                                <span class="text-xs text-gray-400 dark:text-gray-500 block">Precio de Venta</span>
+                                                <p class="font-extrabold text-brand-600 dark:text-brand-400 text-base">Bs. <span x-text="productoSeleccionado.price.toFixed(2)"></span></p>
+                                            </div>
+                                            <!-- NUEVA SECCIÓN DE PRECIO DE COMPRA (COSTO) -->
+                                            <div>
+                                                <span class="text-xs text-gray-400 dark:text-gray-500 block">Precio Compra</span>
+                                                <p class="font-bold text-gray-500 dark:text-slate-400 text-sm mt-0.5">Bs. <span x-text="productoSeleccionado.priceCompra.toFixed(2)"></span></p>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 pl-1">
+                                            <div>
+                                                <span class="text-xs text-gray-400 dark:text-gray-500 block">Categoría</span>
+                                                <p class="font-medium text-gray-700 dark:text-gray-300 truncate" x-text="productoSeleccionado.dept"></p>
+                                            </div>
+                                            <div>
+                                                <span class="text-xs text-gray-400 dark:text-gray-500 block">Stock</span>
+                                                <span class="badge font-bold px-2 py-0.5 rounded-md text-xs mt-0.5" 
+                                                      :class="productoSeleccionado.stock > 10 ? 'badge-success text-white' : 'badge-warning text-gray-800'"
+                                                      x-text="productoSeleccionado.stock + ' u.'"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                
+                                <template x-if="!productoSeleccionado">
+                                    <div class="text-center py-6 text-gray-400 dark:text-gray-500 text-xs italic">
+                                        Selecciona un producto del carrito para ver sus especificaciones.
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- SECCIÓN 2: Opciones de Precio y Promociones Especiales -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h3 class="font-bold text-sm text-brand-700 dark:text-brand-400 uppercase tracking-wider">Precios y Promociones</h3>
+                                    <button class="btn btn-xs btn-circle bg-brand-50 hover:bg-brand-100 text-brand-700 border-none" :disabled="!productoSeleccionado" title="Agregar nueva promoción">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                                    </button>
+                                </div>
+
+                                <template x-if="productoSeleccionado">
+                                    <div class="flex flex-col gap-3">
+                                        <!-- Fila 1: Precio por Mayor -->
+                                        <label class="flex items-start gap-3 p-2.5 rounded-xl border border-gray-50 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-900/50 cursor-pointer transition-colors">
+                                            <input type="checkbox" 
+                                                   :checked="productoSeleccionado.tipoPrecio === 'mayor'"
+                                                   @change="cambiarTipoPrecio(productoSeleccionado.id, $event.target.checked ? 'mayor' : 'normal')"
+                                                   class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 mt-0.5" />
+                                            <div>
+                                                <span class="text-xs font-bold text-gray-900 dark:text-white block">Precio por Mayor</span>
+                                                <span class="text-[11px] text-gray-400 dark:text-gray-500 block mt-0.5 leading-tight" x-text="'Mínimo: ' + productoSeleccionado.minWholesaleQty + ' uds. (Bs. ' + productoSeleccionado.wholesalePrice.toFixed(2) + ' c/u)'"></span>
+                                            </div>
+                                        </label>
+
+                                        <!-- Fila 2: Precio Promoción -->
+                                        <label class="flex items-start gap-3 p-2.5 rounded-xl border border-gray-50 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-900/50 cursor-pointer transition-colors">
+                                            <input type="checkbox" 
+                                                   :checked="productoSeleccionado.tipoPrecio === 'promo'"
+                                                   @change="cambiarTipoPrecio(productoSeleccionado.id, $event.target.checked ? 'promo' : 'normal')"
+                                                   class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 mt-0.5" />
+                                            <div class="flex-1">
+                                                <span class="text-xs font-bold text-gray-900 dark:text-white block">Precio de Promoción</span>
+                                                <span class="text-[11px] text-amber-600 dark:text-amber-400 font-medium block mt-0.5 leading-tight" x-text="productoSeleccionado.promoText + ' (Bs. ' + productoSeleccionado.promoPrice.toFixed(2) + ')'"></span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </template>
+
+                                <template x-if="!productoSeleccionado">
+                                    <div class="text-center py-6 text-gray-400 dark:text-gray-500 text-xs italic">
+                                        Habilita opciones seleccionando un artículo.
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- SECCIÓN 3: Modulo de Gestión de Bajas de Inventario -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-sm text-red-700 dark:text-red-400 uppercase tracking-wider mb-2">Retiros e Inventario</h3>
+                                <p class="text-[11px] text-gray-400 dark:text-gray-500 mb-3 leading-tight">
+                                    Da de baja unidades del producto seleccionado por mermas, caducidad o daños irreversibles.
+                                </p>
+                                <button class="btn btn-sm btn-outline border-red-200 hover:border-red-500 hover:bg-red-50 dark:border-red-900/30 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 w-full rounded-xl normal-case text-xs"
+                                        :disabled="!productoSeleccionado"
+                                        @click="abrirModalBaja()">
+                                    Registrar Baja de Producto
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ================= COLUMNA CENTRAL: Lista de Productos (Ocupa 2 espacios) ================= -->
+                        <div class="xl:col-span-2 flex flex-col">
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 dark:border-slate-700 flex-1">
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Carrito de Compras</h2>
+                                
+                                <div class="grid grid-cols-12 gap-4 pb-4 border-b border-gray-100 dark:border-slate-700 text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    <div class="col-span-6">Producto</div>
+                                    <div class="col-span-3 text-center">Cantidad</div>
+                                    <div class="col-span-3 text-right pr-2 md:pr-8">Precio</div>
+                                </div>
+
+                                <div class="mt-4 flex flex-col gap-4" x-init="if(typeof autoAnimate !== 'undefined') autoAnimate($el)">
+                                    <template x-for="item in items" :key="item.id">
+                                        <div @click="seleccionarProducto(item)"
+                                             :class="productoSeleccionado?.id === item.id ? 'border-brand-500 ring-2 ring-brand-500/20 bg-brand-50/10 dark:bg-brand-950/20' : 'border-gray-100 dark:border-slate-700'"
+                                             class="grid grid-cols-12 gap-4 items-center p-3 md:p-4 bg-white dark:bg-slate-800 border rounded-2xl hover:border-brand-300 dark:hover:border-brand-700 transition-all cursor-pointer">
+                                            
+                                            <div class="col-span-6 flex items-center gap-3 md:gap-4">
+                                                <div class="w-16 h-16 md:w-20 md:h-20 bg-gray-50 dark:bg-slate-700 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-slate-600">
+                                                    <img :src="item.img" :alt="item.name" class="object-cover w-full h-full mix-blend-multiply dark:mix-blend-normal">
+                                                </div>
+                                                <div>
+                                                    <h3 class="font-bold text-xs md:text-sm text-gray-900 dark:text-white line-clamp-2" x-text="item.name"></h3>
+                                                    <p class="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mt-1">Presentación: <span x-text="item.detail"></span></p>
+                                                    <template x-if="item.tipoPrecio !== 'normal'">
+                                                        <span class="badge badge-warning font-bold text-[9px] px-1.5 py-0 mt-1" x-text="item.tipoPrecio === 'mayor' ? 'Mayorista' : 'Promoción'"></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-span-3 flex justify-center" @click.stop>
+                                                <div class="flex items-center bg-gray-50 dark:bg-slate-900 rounded-lg p-1 border border-gray-100 dark:border-slate-700">
+                                                    <button @click="if(item.qty > 1) { item.qty--; }" class="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 transition-colors">
+                                                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                                    </button>
+                                                    <span class="w-6 md:w-8 text-center text-xs md:text-sm font-semibold text-gray-900 dark:text-white" x-text="item.qty"></span>
+                                                    <button @click="item.qty++;" class="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 transition-colors">
+                                                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-span-3 flex items-center justify-end gap-2 md:gap-6" @click.stop>
+                                                <span class="font-bold text-sm md:text-lg text-gray-900 dark:text-white whitespace-nowrap">Bs. <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
+                                                <button @click="pedirConfirmacion(item)" class="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors p-1 md:p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0">
+                                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    
+                                    <div x-show="items.length === 0" class="text-center py-16 text-gray-500 dark:text-gray-400" x-cloak>
+                                        <div class="w-20 h-20 bg-gray-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <svg class="w-10 h-10 text-gray-300 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        </div>
+                                        <p class="font-medium text-lg">Tu carrito está vacío.</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-auto pt-6 border-t border-gray-100 dark:border-slate-700 flex justify-between items-center">
+                                    <button class="font-medium text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 px-4 py-2 transition-colors">
+                                        Volver
+                                    </button>
+                                    <button class="btn bg-[#ff3b30] hover:bg-[#d63026] text-white border-none rounded-xl px-8 shadow-sm">
+                                        Cancelar Pedido
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ================= COLUMNA DERECHA: Resumen, Pagos y Gestión ================= -->
+                        <div class="xl:col-span-1 flex flex-col gap-6">
+                            
+                            <!-- Resumen de Orden Modificado con Contador de Productos -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-6">Resumen del Pedido</h3>
+                                <div class="flex flex-col gap-4 text-sm">
+                                    <!-- CONTADOR DE PRODUCTOS TOTALES -->
+                                    <div class="flex justify-between text-gray-500 dark:text-gray-400 font-medium">
+                                        <span>Cantidad de Productos</span>
+                                        <span class="text-gray-900 dark:text-white font-bold" x-text="totalProductos + ' unidades'"></span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-500 dark:text-gray-400 font-medium">
+                                        <span>Descuento Total</span>
+                                        <span class="text-gray-900 dark:text-gray-200">Bs. <span x-text="discount.toFixed(2)"></span></span>
+                                    </div>
+                                    <div class="pt-4 border-t border-gray-100 dark:border-slate-700 flex justify-between items-end">
+                                        <span class="text-gray-500 dark:text-gray-400 font-medium">Total</span>
+                                        <span class="text-3xl font-black text-gray-900 dark:text-white">Bs. <span x-text="total.toFixed(2)"></span></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Métodos de Pago -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4">Método de Pago</h3>
+                                
+                                <div class="grid grid-cols-3 gap-2 mb-6" x-data="{ metodoSeleccionado: 'qr' }">
+                                    <div @click="metodoSeleccionado = 'qr'" 
+                                         :class="metodoSeleccionado === 'qr' ? 'border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-400' : 'border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'"
+                                         class="rounded-xl h-14 flex flex-col items-center justify-center cursor-pointer transition-all p-1">
+                                        <svg class="h-5 w-5 text-brand-600 dark:text-brand-400 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                        </svg>
+                                        <span class="text-[10px] font-semibold">Por QR</span>
+                                    </div>
+                                    
+                                    <div @click="metodoSeleccionado = 'efectivo'" 
+                                         :class="metodoSeleccionado === 'efectivo' ? 'border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-400' : 'border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'"
+                                         class="rounded-xl h-14 flex flex-col items-center justify-center cursor-pointer transition-all p-1">
+                                        <svg class="h-5 w-5 text-gray-500 dark:text-slate-400 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" :class="metodoSeleccionado === 'efectivo' && 'text-brand-600 dark:text-brand-400'">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <span class="text-[10px] font-semibold">Efectivo</span>
+                                    </div>
+
+                                    <div @click="metodoSeleccionado = 'mixto'" 
+                                         :class="metodoSeleccionado === 'mixto' ? 'border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-400' : 'border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'"
+                                         class="rounded-xl h-14 flex flex-col items-center justify-center cursor-pointer transition-all p-1 text-center">
+                                        <div class="flex gap-0.5 mb-0.5 text-gray-400" :class="metodoSeleccionado === 'mixto' && 'text-brand-600 dark:text-brand-400'">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01" /></svg>
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6" /></svg>
+                                        </div>
+                                        <span class="text-[10px] font-semibold leading-none">Mixto</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn bg-brand-600 hover:bg-brand-700 text-white border-none rounded-xl w-full shadow-sm">
+                                    Proceder al Pago
+                                </button>
+                            </div>
+
+                            <!-- Gestión de Caja -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4">Gestión de Caja</h3>
+                                <div class="flex flex-col gap-3">
+                                    <button class="btn btn-outline border-gray-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 justify-start rounded-xl w-full normal-case text-xs gap-3">
+                                        <svg class="w-5 h-5 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <span class="truncate">Entradas y salidas de dinero</span>
+                                    </button>
+                                    
+                                    <button class="btn btn-outline border-gray-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 justify-start rounded-xl w-full normal-case text-xs gap-3">
+                                        <svg class="w-5 h-5 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span class="truncate">Historial de ventas del Día</span>
+                                    </button>
+                                    
+                                    <button class="btn btn-outline border-gray-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 justify-start rounded-xl w-full normal-case text-xs gap-3">
+                                        <svg class="w-5 h-5 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                        </svg>
+                                        <span class="truncate">Devoluciones de productos</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Dialog / Modal de Confirmación de Eliminación -->
+                <dialog id="modal_confirmar_eliminacion" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarConfirmacion()">
+                    <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-6 border border-gray-100 dark:border-slate-700">
+                        <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2">¿Eliminar producto?</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                            ¿Estás seguro de que deseas quitar <span class="font-semibold text-gray-900 dark:text-white" x-text="itemPorEliminar ? itemPorEliminar.name : ''"></span> de tu carrito de compras?
+                        </p>
+                        <div class="modal-action flex justify-end gap-3 mt-4">
+                            <button class="btn btn-ghost rounded-xl px-6" @click="cerrarConfirmacion()">
+                                Cancelar
+                            </button>
+                            <button class="btn bg-[#ff3b30] hover:bg-[#d63026] text-white border-none rounded-xl px-6 shadow-sm" @click="confirmarEliminacion()" x-ref="btnEliminar">
+                                Sí, eliminar
+                            </button>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarConfirmacion()">cerrar</button>
+                    </form>
+                </dialog>
+
+                <!-- Dialog / Modal para dar de Baja un Producto -->
+                <dialog id="modal_baja_producto" class="modal modal-bottom sm:modal-middle">
+                    <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-6 border border-gray-100 dark:border-slate-700">
+                        <h3 class="font-bold text-xl text-red-600 dark:text-red-400 mb-2">Registrar Baja de Inventario</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            Retirar unidades de: <span class="font-semibold text-gray-900 dark:text-white" x-text="productoSeleccionado ? productoSeleccionado.name : ''"></span>
+                        </p>
+                        
+                        <div class="flex flex-col gap-4">
+                            <div>
+                                <label class="label text-xs font-bold uppercase text-gray-500">Motivo del Retiro</label>
+                                <select class="select select-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none">
+                                    <option value="vencimiento">Fecha de Vencimiento Cumplida</option>
+                                    <option value="defecto">Defecto Irreversible / Daño de Empaque</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="label text-xs font-bold uppercase text-gray-500">Cantidad a Retirar</label>
+                                    <input type="number" value="1" min="1" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl" />
+                                </div>
+                                <div>
+                                    <label class="label text-xs font-bold uppercase text-gray-500">Stock Actual</label>
+                                    <input type="text" readonly :value="productoSeleccionado ? productoSeleccionado.stock : 0" class="input input-bordered w-full bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 rounded-xl opacity-70 font-bold text-center" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-action flex justify-end gap-3 mt-6">
+                            <button class="btn btn-ghost rounded-xl px-6" @click="cerrarModalBaja()">
+                                Cancelar
+                            </button>
+                            <button class="btn bg-red-600 hover:bg-red-700 text-white border-none rounded-xl px-6 shadow-sm" @click="procesarBaja()">
+                                Confirmar Retiro
+                            </button>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarModalBaja()">cerrar</button>
+                    </form>
+                </dialog>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('cartApp', () => ({
+                items: [
+                    { id: 1, name: 'Galletas de Chocolate Rellenas Clásicas', detail: 'Paquete 250g', priceNormal: 12.50, wholesalePrice: 10.00, minWholesaleQty: 6, promoPrice: 11.00, promoText: 'Descuento de la semana', priceCompra: 8.20, price: 12.50, qty: 3, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Galletas', dept: 'Abarrotes', stock: 45, tipoPrecio: 'normal' },
+                    { id: 2, name: 'Cereal de Maíz Azucarado Fortificado', detail: 'Caja 500g', priceNormal: 28.00, wholesalePrice: 24.00, minWholesaleQty: 4, promoPrice: 26.50, promoText: '2da unidad a mitad', priceCompra: 19.50, price: 28.00, qty: 1, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Cereal', dept: 'Desayuno', stock: 8, tipoPrecio: 'normal' },
+                    { id: 3, name: 'Papas Fritas Corte Fino', detail: 'Bolsa 150g', priceNormal: 15.00, wholesalePrice: 12.50, minWholesaleQty: 12, promoPrice: 13.50, promoText: 'Promo Fin de Semana', priceCompra: 9.00, price: 15.00, qty: 2, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Papas+Fritas', dept: 'Snacks', stock: 60, tipoPrecio: 'normal' },
+                    { id: 4, name: 'Detergente Líquido Multiusos Aroma Floral', detail: 'Botella 2L', priceNormal: 45.00, wholesalePrice: 40.00, minWholesaleQty: 3, promoPrice: 42.00, promoText: 'Limpieza total -10%', priceCompra: 31.00, price: 45.00, qty: 1, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Detergente', dept: 'Limpieza', stock: 15, tipoPrecio: 'normal' },
+                    { id: 5, name: 'Papel Higiénico Doble Hoja', detail: 'Paquete 6 rollos', priceNormal: 22.00, wholesalePrice: 19.50, minWholesaleQty: 5, promoPrice: 20.00, promoText: 'Pack Familiar', priceCompra: 14.00, price: 22.00, qty: 1, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Papel', dept: 'Higiene', stock: 3, tipoPrecio: 'normal' }
+                ],
+                discount: 0.00,
+                itemPorEliminar: null,
+                productoSeleccionado: null,
+                
+                get subtotal() {
+                    return this.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                },
+                get total() {
+                    return this.subtotal - this.discount;
+                },
+                get totalProductos() {
+                    return this.items.reduce((sum, item) => sum + item.qty, 0);
+                },
+                
+                seleccionarProducto(item) {
+                    this.productoSeleccionado = item;
+                },
+                
+                cambiarTipoPrecio(id, nuevoTipo) {
+                    const item = this.items.find(i => i.id === id);
+                    if (!item) return;
+                    
+                    item.tipoPrecio = nuevoTipo;
+                    if (nuevoTipo === 'mayor') {
+                        item.price = item.wholesalePrice;
+                    } else if (nuevoTipo === 'promo') {
+                        item.price = item.promoPrice;
+                    } else {
+                        item.price = item.priceNormal;
+                    }
+                    
+                    if (this.productoSeleccionado?.id === id) {
+                        this.productoSeleccionado = {...item};
+                    }
+                },
+                
+                pedirConfirmacion(item) {
+                    this.itemPorEliminar = item;
+                    document.getElementById('modal_confirmar_eliminacion').showModal();
+                },
+                
+                cerrarConfirmacion() {
+                    document.getElementById('modal_confirmar_eliminacion').close();
+                    this.itemPorEliminar = null;
+                },
+                
+                confirmarEliminacion() {
+                    if (this.itemPorEliminar) {
+                        if (this.productoSeleccionado?.id === this.itemPorEliminar.id) {
+                            this.productoSeleccionado = null;
+                        }
+                        this.items = this.items.filter(item => item.id !== this.itemPorEliminar.id);
+                    }
+                    this.cerrarConfirmacion();
+                },
+
+                abrirModalBaja() {
+                    if (this.productoSeleccionado) {
+                        document.getElementById('modal_baja_producto').showModal();
+                    }
+                },
+                cerrarModalBaja() {
+                    document.getElementById('modal_baja_producto').close();
+                },
+                procesarBaja() {
+                    alert('Baja registrada correctamente en el inventario para: ' + this.productoSeleccionado.name);
+                    this.cerrarModalBaja();
+                }
+            }))
+        });
+    </script>
+</body>
+</html>

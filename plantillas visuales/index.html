@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" x-data="{ isDark: false, sidebarOpen: true, activeTab: 'orders' }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
+<html lang="es" x-data="{ isDark: $persist(false), sidebarOpen: $persist(true), activeTab: 'orders' }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <!-- PLUGINS DE ALPINE -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@formkit/auto-animate/index.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 
     <script>
         tailwind.config = {
@@ -20,19 +26,21 @@
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         brand: {
-                            light: '#ECF4E5',   
-                            DEFAULT: '#6FA83A', 
-                            dark: '#527E2B',    
-                            leaf: '#2F4A19'     
+                            50: '#f5f9f0', 100: '#ECF4E5', 200: '#d7e8c6', 300: '#bcda9e', 400: '#9bc66e', 500: '#7cb34a',
+                            600: '#6FA83A', 700: '#527E2B', 800: '#426524', 900: '#2F4A19',
+                            light: '#ECF4E5', DEFAULT: '#6FA83A', dark: '#527E2B', leaf: '#2F4A19'     
                         },
-                        surface: {
-                            DEFAULT: '#f8fafc', 
-                            dark: '#0f172a'     
-                        }
+                        surface: { DEFAULT: '#f8fafc', dark: '#0f172a' }
                     }
                 }
             }
         }
+        
+        document.addEventListener('htmx:load', function(evt) {
+            if (window.Alpine) {
+                Alpine.initTree(evt.detail.elt);
+            }
+        });
     </script>
     <style>
         [x-cloak] { display: none !important; }

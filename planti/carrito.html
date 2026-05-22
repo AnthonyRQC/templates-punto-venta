@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" x-data="{ isDark: false, sidebarOpen: true, activeTab: 'carrito' }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
+<html lang="es" x-data="{ tema: $persist('light'), sidebarOpen: true, activeTab: 'carrito' }" :class="tema === 'dark' ? 'dark' : ''" :data-theme="tema === 'dark' ? 'dark' : 'light'">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +8,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <!-- PLUGINS DE ALPINE (El orden importa: siempre antes del core) -->
+    <!-- AutoAnimate -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@formkit/auto-animate/index.min.js"></script>
+    <!-- Alpine Mask -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
+    <!-- Alpine Focus (Para manejar el teclado en los modales) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <!-- Alpine Persist (Para recordar datos en el navegador) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+    <!-- NÚCLEO DE ALPINE.JS -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine Collapse (si lo necesitas para tu sidebar) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -20,36 +32,27 @@
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         brand: {
-                            50: '#f5f9f0',
-                            100: '#ECF4E5',
-                            200: '#d7e8c6',
-                            300: '#bcda9e',
-                            400: '#9bc66e',
-                            500: '#7cb34a',
-                            600: '#6FA83A',
-                            700: '#527E2B',
-                            800: '#426524',
-                            900: '#2F4A19',
-                            light: '#ECF4E5',   
-                            DEFAULT: '#6FA83A', 
-                            dark: '#527E2B',    
-                            leaf: '#2F4A19'     
+                            50: '#f5f9f0', 100: '#ECF4E5', 200: '#d7e8c6', 300: '#bcda9e', 400: '#9bc66e', 500: '#7cb34a',
+                            600: '#6FA83A', 700: '#527E2B', 800: '#426524', 900: '#2F4A19',
+                            light: '#ECF4E5', DEFAULT: '#6FA83A', dark: '#527E2B', leaf: '#2F4A19'     
                         },
-                        surface: {
-                            DEFAULT: '#f8fafc', 
-                            dark: '#0f172a'     
-                        }
+                        surface: { DEFAULT: '#f8fafc', dark: '#0f172a' }
                     }
                 }
             }
         }
+        
+        // Integración HTMX + Alpine
+        document.addEventListener('htmx:load', function(evt) {
+            if (window.Alpine) {
+                Alpine.initTree(evt.detail.elt);
+            }
+        });
     </script>
     <style>
         [x-cloak] { display: none !important; }
         .sidebar-transition { 
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                        background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -64,74 +67,118 @@
         <!-- Sidebar inyectado con HTMX -->
         <aside hx-get="sidebar.html" hx-trigger="load" hx-swap="outerHTML"></aside>
 
-        <main class="flex-1 overflow-y-auto">
+        <main class="flex-1 overflow-y-auto w-full">
             
             <!-- Navbar inyectado con HTMX -->
             <header hx-get="navbar.html" hx-trigger="load" hx-swap="outerHTML"></header>
 
-            <div class="p-8" x-data="cartApp()">
-                <div class="max-w-7xl mx-auto">
+            <div class="p-6 md:p-8 w-full" x-data="cartApp()">
+                <!-- Contenedor ancho total en lugar de max-w-7xl -->
+                <div class="w-full">
                     
-                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    <!-- Layout Grid: 1 col izquierda, 2 cols centro, 1 col derecha -->
+                    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 md:gap-8">
                         
-                        <!-- Columna Izquierda: Lista de Productos -->
-                        <div class="xl:col-span-2">
-                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-slate-700">
+                        <!-- ================= COLUMNA IZQUIERDA: Herramientas ================= -->
+                        <div class="xl:col-span-1 flex flex-col gap-6">
+                            
+                            <!-- Tarjeta 1: Buscador de Producto -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 flex-1 min-h-[140px]">
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4">Buscar Producto</h3>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    </div>
+                                    <input type="text" placeholder="Ej. Galletas, Refresco..." 
+                                           class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-sm focus:border-brand-500 focus:ring-brand-500 rounded-xl pl-10" />
+                                </div>
+                                <p class="text-xs text-gray-400 mt-3 text-center">Presiona Enter para agregar rápidamente.</p>
+                            </div>
+
+                            <!-- Tarjeta 2: Atajos / Favoritos (Placeholder) -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 flex-1 min-h-[140px] flex flex-col justify-center items-center opacity-70">
+                                <svg class="w-8 h-8 text-brand-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                                <h3 class="font-bold text-sm text-gray-900 dark:text-white">Productos Estrella</h3>
+                                <p class="text-xs text-gray-400 text-center mt-1">Los más vendidos aparecerán aquí.</p>
+                            </div>
+
+                            <!-- Tarjeta 3: Categorías Rápidas (Placeholder) -->
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 flex-1 min-h-[140px] flex flex-col justify-center items-center opacity-70">
+                                <svg class="w-8 h-8 text-blue-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                                <h3 class="font-bold text-sm text-gray-900 dark:text-white">Categorías</h3>
+                                <p class="text-xs text-gray-400 text-center mt-1">Filtros rápidos para el catálogo.</p>
+                            </div>
+
+                            <!-- Tarjeta 4: Ofertas / Cupones (Placeholder) -->
+                            <div class="bg-brand-600 dark:bg-brand-700 rounded-3xl p-6 shadow-sm border border-brand-500 dark:border-brand-600 flex-1 min-h-[140px] flex flex-col justify-center items-center text-white">
+                                <svg class="w-8 h-8 text-brand-100 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                                <h3 class="font-bold text-sm">Escáner Promocional</h3>
+                                <p class="text-xs text-brand-100/80 text-center mt-1">Activa la cámara para códigos de barras.</p>
+                            </div>
+                        </div>
+
+                        <!-- ================= COLUMNA CENTRAL: Lista de Productos (Ocupa 2 espacios) ================= -->
+                        <div class="xl:col-span-2 flex flex-col">
+                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 dark:border-slate-700 flex-1">
                                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Carrito de Compras</h2>
                                 
                                 <!-- Encabezados de Tabla -->
                                 <div class="grid grid-cols-12 gap-4 pb-4 border-b border-gray-100 dark:border-slate-700 text-sm font-medium text-gray-500 dark:text-gray-400">
                                     <div class="col-span-6">Producto</div>
                                     <div class="col-span-3 text-center">Cantidad</div>
-                                    <div class="col-span-3 text-right pr-8">Precio</div>
+                                    <div class="col-span-3 text-right pr-2 md:pr-8">Precio</div>
                                 </div>
 
-                                <!-- Lista de Items -->
-                                <div class="mt-4 flex flex-col gap-4">
+                                <!-- Lista de Items: Aplicamos x-init="autoAnimate($el)" para animar agregar/quitar -->
+                                <div class="mt-4 flex flex-col gap-4" x-init="if(typeof autoAnimate !== 'undefined') autoAnimate($el)">
                                     <template x-for="item in items" :key="item.id">
-                                        <div class="grid grid-cols-12 gap-4 items-center p-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl hover:border-brand-300 dark:hover:border-brand-700 transition-colors">
+                                        <div class="grid grid-cols-12 gap-4 items-center p-3 md:p-4 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl hover:border-brand-300 dark:hover:border-brand-700 transition-colors">
                                             
                                             <!-- Producto Info -->
-                                            <div class="col-span-6 flex items-center gap-4">
-                                                <div class="w-20 h-20 bg-gray-50 dark:bg-slate-700 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-slate-600">
+                                            <div class="col-span-6 flex items-center gap-3 md:gap-4">
+                                                <div class="w-16 h-16 md:w-20 md:h-20 bg-gray-50 dark:bg-slate-700 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100 dark:border-slate-600">
                                                     <img :src="item.img" :alt="item.name" class="object-cover w-full h-full mix-blend-multiply dark:mix-blend-normal">
                                                 </div>
                                                 <div>
-                                                    <h3 class="font-bold text-sm text-gray-900 dark:text-white line-clamp-2" x-text="item.name"></h3>
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Presentación: <span x-text="item.detail"></span></p>
+                                                    <h3 class="font-bold text-xs md:text-sm text-gray-900 dark:text-white line-clamp-2" x-text="item.name"></h3>
+                                                    <p class="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 mt-1">Presentación: <span x-text="item.detail"></span></p>
                                                 </div>
                                             </div>
 
                                             <!-- Cantidad -->
                                             <div class="col-span-3 flex justify-center">
                                                 <div class="flex items-center bg-gray-50 dark:bg-slate-900 rounded-lg p-1 border border-gray-100 dark:border-slate-700">
-                                                    <button @click="if(item.qty > 1) item.qty--" class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 transition-colors">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                                    <button @click="if(item.qty > 1) item.qty--" class="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 transition-colors">
+                                                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
                                                     </button>
-                                                    <span class="w-8 text-center text-sm font-semibold text-gray-900 dark:text-white" x-text="item.qty"></span>
-                                                    <button @click="item.qty++" class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 transition-colors">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                                    <span class="w-6 md:w-8 text-center text-xs md:text-sm font-semibold text-gray-900 dark:text-white" x-text="item.qty"></span>
+                                                    <button @click="item.qty++" class="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-md hover:bg-white dark:hover:bg-slate-700 text-gray-600 dark:text-gray-300 transition-colors">
+                                                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <!-- Precio y Eliminar -->
-                                            <div class="col-span-3 flex items-center justify-end gap-6">
-                                                <span class="font-bold text-lg text-gray-900 dark:text-white">Bs. <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
-                                                <button @click="pedirConfirmacion(item)" class="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            <div class="col-span-3 flex items-center justify-end gap-2 md:gap-6">
+                                                <span class="font-bold text-sm md:text-lg text-gray-900 dark:text-white whitespace-nowrap">Bs. <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
+                                                <button @click="pedirConfirmacion(item)" class="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors p-1 md:p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0">
+                                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                 </button>
                                             </div>
                                         </div>
                                     </template>
                                     
-                                    <div x-show="items.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400" x-cloak>
-                                        Tu carrito está vacío.
+                                    <div x-show="items.length === 0" class="text-center py-16 text-gray-500 dark:text-gray-400" x-cloak>
+                                        <div class="w-20 h-20 bg-gray-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <svg class="w-10 h-10 text-gray-300 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        </div>
+                                        <p class="font-medium text-lg">Tu carrito está vacío.</p>
+                                        <p class="text-sm mt-1">Busca productos en el panel izquierdo para agregarlos.</p>
                                     </div>
                                 </div>
 
                                 <!-- Botones Inferiores -->
-                                <div class="mt-8 flex justify-between items-center pt-6 border-t border-gray-100 dark:border-slate-700">
+                                <div class="mt-auto pt-6 border-t border-gray-100 dark:border-slate-700 flex justify-between items-center">
                                     <button class="font-medium text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 px-4 py-2 transition-colors">
                                         Volver
                                     </button>
@@ -142,14 +189,15 @@
                             </div>
                         </div>
 
-                        <!-- Columna Derecha: Resumen y Pagos -->
+                        <!-- ================= COLUMNA DERECHA: Resumen y Pagos ================= -->
                         <div class="xl:col-span-1 flex flex-col gap-6">
                             
                             <!-- Cupón -->
                             <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
                                 <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4">Código de Descuento</h3>
                                 <div class="flex flex-col gap-3">
-                                    <input type="text" placeholder="Ingresa tu código" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-sm focus:border-brand-500 focus:ring-brand-500 rounded-xl" />
+                                    <!-- Ejemplo de uso de Alpine Mask para formatear cupones si se quiere, ej. XXXX-XXXX -->
+                                    <input type="text" x-mask="****-****" placeholder="Ej. PROM-0123" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-sm focus:border-brand-500 focus:ring-brand-500 rounded-xl uppercase" />
                                     <button class="btn btn-outline border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white hover:border-brand-600 dark:border-brand-500 dark:text-brand-400 dark:hover:bg-brand-600 dark:hover:text-white rounded-xl w-full">
                                         Aplicar Cupón
                                     </button>
@@ -214,8 +262,8 @@
                     </div>
                 </div>
 
-                <!-- Dialog / Modal de Confirmación de Eliminación -->
-                <dialog id="modal_confirmar_eliminacion" class="modal modal-bottom sm:modal-middle">
+                <!-- Dialog / Modal de Confirmación de Eliminación (con Alpine Focus trap opcional) -->
+                <dialog id="modal_confirmar_eliminacion" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarConfirmacion()">
                     <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-6 border border-gray-100 dark:border-slate-700">
                         <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2">¿Eliminar producto?</h3>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
@@ -225,7 +273,8 @@
                             <button class="btn btn-ghost rounded-xl px-6" @click="cerrarConfirmacion()">
                                 Cancelar
                             </button>
-                            <button class="btn bg-[#ff3b30] hover:bg-[#d63026] text-white border-none rounded-xl px-6 shadow-sm" @click="confirmarEliminacion()">
+                            <!-- Usamos x-trap del plugin focus de Alpine (si el modal estuviera hecho full con Alpine, pero DaisyUI gestiona el <dialog>) -->
+                            <button class="btn bg-[#ff3b30] hover:bg-[#d63026] text-white border-none rounded-xl px-6 shadow-sm" @click="confirmarEliminacion()" x-ref="btnEliminar">
                                 Sí, eliminar
                             </button>
                         </div>
