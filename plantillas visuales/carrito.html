@@ -96,16 +96,39 @@
                         <!-- ================= COLUMNA IZQUIERDA: Interactiva de Detalle/Búsqueda ================= -->
                         <div class="xl:col-span-1 flex flex-col gap-5">
                             
-                            <!-- Buscador de Producto Modificado con Lupa -->
+                            <!-- Buscador de Producto Ajax -->
                             <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
                                 <h3 class="font-bold text-base text-gray-900 dark:text-white mb-3">Buscar Producto</h3>
                                 <div class="flex gap-2">
-                                    <div class="relative flex-1">
+                                    <div class="relative flex-1" @click.away="showDropdown = false">
                                         <input type="text" placeholder="Código o Nombre..." 
+                                               x-model="searchQuery"
+                                               @input="buscarProducto"
+                                               @focus="if(searchQuery.length > 0) showDropdown = true"
                                                class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-sm focus:border-brand-500 focus:ring-brand-500 rounded-xl" />
+                                        
+                                        <!-- DROPDOWN DE RESULTADOS -->
+                                        <div x-show="showDropdown" x-transition x-cloak
+                                             class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+                                            <template x-for="res in searchResults" :key="res.id">
+                                                <div @click="seleccionarProductoBuscado(res)"
+                                                     class="p-3 border-b border-gray-50 dark:border-slate-700/50 hover:bg-brand-50 dark:hover:bg-brand-900/20 cursor-pointer flex items-center gap-3 transition-colors">
+                                                    <img :src="res.img" class="w-10 h-10 rounded-lg object-cover bg-white" />
+                                                    <div>
+                                                        <h4 class="text-sm font-bold text-gray-900 dark:text-white line-clamp-1" x-text="res.name"></h4>
+                                                        <p class="text-[11px] text-gray-500 font-medium mt-0.5">Bs. <span x-text="res.priceNormal.toFixed(2)"></span> - Stock: <span x-text="res.stock"></span></p>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <div x-show="searchResults.length === 0 && searchQuery.length > 0" class="p-4 text-center text-sm text-gray-500">
+                                                No se encontraron productos.
+                                            </div>
+                                        </div>
                                     </div>
-                                    <button class="btn bg-brand-600 hover:bg-brand-700 text-white rounded-xl border-none px-4">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <button @click="agregarAlCarrito()"
+                                            :disabled="!productoSeleccionado"
+                                            class="btn bg-brand-600 hover:bg-brand-700 text-white rounded-xl border-none px-4 disabled:bg-gray-100 disabled:text-gray-300 dark:disabled:bg-slate-800 dark:disabled:text-slate-600 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6m3-3H9"></path></svg>
                                     </button>
                                 </div>
                             </div>
@@ -165,7 +188,7 @@
                             <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700">
                                 <div class="flex justify-between items-center mb-3">
                                     <h3 class="font-bold text-sm text-brand-700 dark:text-brand-400 uppercase tracking-wider">Precios y Promociones</h3>
-                                    <button class="btn btn-xs btn-circle bg-brand-50 hover:bg-brand-100 text-brand-700 border-none" :disabled="!productoSeleccionado" title="Agregar nueva promoción">
+                                    <button @click="abrirModalPromo('nuevo')" class="btn btn-xs btn-circle bg-brand-50 hover:bg-brand-100 text-brand-700 border-none" :disabled="!productoSeleccionado" title="Agregar nueva promoción">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                                     </button>
                                 </div>
@@ -173,28 +196,38 @@
                                 <template x-if="productoSeleccionado">
                                     <div class="flex flex-col gap-3">
                                         <!-- Fila 1: Precio por Mayor -->
-                                        <label class="flex items-start gap-3 p-2.5 rounded-xl border border-gray-50 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-900/50 cursor-pointer transition-colors">
-                                            <input type="checkbox" 
-                                                   :checked="productoSeleccionado.tipoPrecio === 'mayor'"
-                                                   @change="cambiarTipoPrecio(productoSeleccionado.id, $event.target.checked ? 'mayor' : 'normal')"
-                                                   class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 mt-0.5" />
-                                            <div>
-                                                <span class="text-xs font-bold text-gray-900 dark:text-white block">Precio por Mayor</span>
-                                                <span class="text-[11px] text-gray-400 dark:text-gray-500 block mt-0.5 leading-tight" x-text="'Mínimo: ' + productoSeleccionado.minWholesaleQty + ' uds. (Bs. ' + productoSeleccionado.wholesalePrice.toFixed(2) + ' c/u)'"></span>
-                                            </div>
-                                        </label>
+                                        <div class="flex items-start gap-3 p-2.5 rounded-xl border border-gray-50 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors relative group">
+                                            <label class="flex items-start gap-3 cursor-pointer flex-1">
+                                                <input type="checkbox" 
+                                                       :checked="productoSeleccionado.tipoPrecio === 'mayor'"
+                                                       @change="cambiarTipoPrecio(productoSeleccionado.id, $event.target.checked ? 'mayor' : 'normal')"
+                                                       class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 mt-0.5" />
+                                                <div>
+                                                    <span class="text-xs font-bold text-gray-900 dark:text-white block">Precio por Mayor</span>
+                                                    <span class="text-[11px] text-gray-400 dark:text-gray-500 block mt-0.5 leading-tight" x-text="'Mínimo: ' + productoSeleccionado.minWholesaleQty + ' uds. (Bs. ' + productoSeleccionado.wholesalePrice.toFixed(2) + ' c/u)'"></span>
+                                                </div>
+                                            </label>
+                                            <button @click="abrirModalPromo('mayor')" class="opacity-0 group-hover:opacity-100 btn btn-xs btn-ghost btn-circle text-brand-600 hover:bg-brand-50 dark:hover:bg-slate-700 transition-all absolute right-2 top-2">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                            </button>
+                                        </div>
 
                                         <!-- Fila 2: Precio Promoción -->
-                                        <label class="flex items-start gap-3 p-2.5 rounded-xl border border-gray-50 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-900/50 cursor-pointer transition-colors">
-                                            <input type="checkbox" 
-                                                   :checked="productoSeleccionado.tipoPrecio === 'promo'"
-                                                   @change="cambiarTipoPrecio(productoSeleccionado.id, $event.target.checked ? 'promo' : 'normal')"
-                                                   class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 mt-0.5" />
-                                            <div class="flex-1">
-                                                <span class="text-xs font-bold text-gray-900 dark:text-white block">Precio de Promoción</span>
-                                                <span class="text-[11px] text-amber-600 dark:text-amber-400 font-medium block mt-0.5 leading-tight" x-text="productoSeleccionado.promoText + ' (Bs. ' + productoSeleccionado.promoPrice.toFixed(2) + ')'"></span>
-                                            </div>
-                                        </label>
+                                        <div class="flex items-start gap-3 p-2.5 rounded-xl border border-gray-50 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-900/50 transition-colors relative group">
+                                            <label class="flex items-start gap-3 cursor-pointer flex-1">
+                                                <input type="checkbox" 
+                                                       :checked="productoSeleccionado.tipoPrecio === 'promo'"
+                                                       @change="cambiarTipoPrecio(productoSeleccionado.id, $event.target.checked ? 'promo' : 'normal')"
+                                                       class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 mt-0.5" />
+                                                <div class="flex-1 pr-6">
+                                                    <span class="text-xs font-bold text-gray-900 dark:text-white block">Precio de Promoción</span>
+                                                    <span class="text-[11px] text-amber-600 dark:text-amber-400 font-medium block mt-0.5 leading-tight line-clamp-1" x-text="productoSeleccionado.promoText + ' (Bs. ' + productoSeleccionado.promoPrice.toFixed(2) + ')'"></span>
+                                                </div>
+                                            </label>
+                                            <button @click="abrirModalPromo('promo')" class="opacity-0 group-hover:opacity-100 btn btn-xs btn-ghost btn-circle text-brand-600 hover:bg-brand-50 dark:hover:bg-slate-700 transition-all absolute right-2 top-2">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 </template>
 
@@ -278,11 +311,8 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-auto pt-6 border-t border-gray-100 dark:border-slate-700 flex justify-between items-center">
-                                    <button class="font-medium text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 px-4 py-2 transition-colors">
-                                        Volver
-                                    </button>
-                                    <button class="btn bg-[#ff3b30] hover:bg-[#d63026] text-white border-none rounded-xl px-8 shadow-sm">
+                                <div class="mt-auto pt-6 border-t border-gray-100 dark:border-slate-700 flex justify-end items-center">
+                                    <button @click="items = []; productoSeleccionado = null;" class="btn bg-red-600 hover:bg-red-700 dark:bg-red-900/70 dark:hover:bg-red-800/80 dark:text-red-300 text-white border-none rounded-xl px-8 shadow-sm transition-colors">
                                         Cancelar Pedido
                                     </button>
                                 </div>
@@ -312,42 +342,13 @@
                                 </div>
                             </div>
 
-                            <!-- Métodos de Pago -->
-                            <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-                                <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4">Método de Pago</h3>
-                                
-                                <div class="grid grid-cols-3 gap-2 mb-6" x-data="{ metodoSeleccionado: 'qr' }">
-                                    <div @click="metodoSeleccionado = 'qr'" 
-                                         :class="metodoSeleccionado === 'qr' ? 'border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-400' : 'border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'"
-                                         class="rounded-xl h-14 flex flex-col items-center justify-center cursor-pointer transition-all p-1">
-                                        <svg class="h-5 w-5 text-brand-600 dark:text-brand-400 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                                        </svg>
-                                        <span class="text-[10px] font-semibold">Por QR</span>
-                                    </div>
-                                    
-                                    <div @click="metodoSeleccionado = 'efectivo'" 
-                                         :class="metodoSeleccionado === 'efectivo' ? 'border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-400' : 'border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'"
-                                         class="rounded-xl h-14 flex flex-col items-center justify-center cursor-pointer transition-all p-1">
-                                        <svg class="h-5 w-5 text-gray-500 dark:text-slate-400 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" :class="metodoSeleccionado === 'efectivo' && 'text-brand-600 dark:text-brand-400'">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                        <span class="text-[10px] font-semibold">Efectivo</span>
-                                    </div>
-
-                                    <div @click="metodoSeleccionado = 'mixto'" 
-                                         :class="metodoSeleccionado === 'mixto' ? 'border-2 border-brand-500 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-400' : 'border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'"
-                                         class="rounded-xl h-14 flex flex-col items-center justify-center cursor-pointer transition-all p-1 text-center">
-                                        <div class="flex gap-0.5 mb-0.5 text-gray-400" :class="metodoSeleccionado === 'mixto' && 'text-brand-600 dark:text-brand-400'">
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01" /></svg>
-                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6" /></svg>
-                                        </div>
-                                        <span class="text-[10px] font-semibold leading-none">Mixto</span>
-                                    </div>
-                                </div>
-                                
-                                <button class="btn bg-brand-600 hover:bg-brand-700 text-white border-none rounded-xl w-full shadow-sm">
-                                    Proceder al Pago
+                            <!-- Botón Cobrar Principal -->
+                            <div class="pt-2">
+                                <button @click="abrirModalCobrar()" 
+                                        :disabled="items.length === 0"
+                                        class="btn bg-brand-600 hover:bg-brand-700 text-white border-none rounded-2xl w-full shadow-lg shadow-brand-500/30 h-16 text-lg font-bold disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none dark:disabled:bg-slate-800 dark:disabled:text-slate-600 transition-all flex items-center justify-center gap-3">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                    <span>Cobrar Bs. <span x-text="total.toFixed(2)"></span></span>
                                 </button>
                             </div>
 
@@ -394,7 +395,7 @@
                             <button class="btn btn-ghost rounded-xl px-6" @click="cerrarConfirmacion()">
                                 Cancelar
                             </button>
-                            <button class="btn bg-[#ff3b30] hover:bg-[#d63026] text-white border-none rounded-xl px-6 shadow-sm" @click="confirmarEliminacion()" x-ref="btnEliminar">
+                            <button class="btn bg-red-600 hover:bg-red-700 dark:bg-red-900/70 dark:hover:bg-red-800/80 dark:text-red-300 text-white border-none rounded-xl px-6 shadow-sm transition-colors" @click="confirmarEliminacion()" x-ref="btnEliminar">
                                 Sí, eliminar
                             </button>
                         </div>
@@ -415,15 +416,22 @@
                         <div class="flex flex-col gap-4">
                             <div>
                                 <label class="label text-xs font-bold uppercase text-gray-500">Motivo del Retiro</label>
-                                <select class="select select-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none">
+                                <select x-model="bajaTemp.motivo" class="select select-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none">
                                     <option value="vencimiento">Fecha de Vencimiento Cumplida</option>
                                     <option value="defecto">Defecto Irreversible / Daño de Empaque</option>
+                                    <option value="otro">Otro Motivo</option>
                                 </select>
                             </div>
+                            
+                            <div x-show="bajaTemp.motivo === 'otro'" x-transition class="animate-fade-in">
+                                <label class="label text-xs font-bold uppercase text-gray-500">Describa el Motivo</label>
+                                <input type="text" x-model="bajaTemp.otro" placeholder="Ej: Producto usado como muestra..." class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl" />
+                            </div>
+
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="label text-xs font-bold uppercase text-gray-500">Cantidad a Retirar</label>
-                                    <input type="number" value="1" min="1" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl" />
+                                    <input type="number" x-model.number="bajaTemp.cantidad" min="1" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl" />
                                 </div>
                                 <div>
                                     <label class="label text-xs font-bold uppercase text-gray-500">Stock Actual</label>
@@ -436,13 +444,167 @@
                             <button class="btn btn-ghost rounded-xl px-6" @click="cerrarModalBaja()">
                                 Cancelar
                             </button>
-                            <button class="btn bg-red-600 hover:bg-red-700 text-white border-none rounded-xl px-6 shadow-sm" @click="procesarBaja()">
+                            <button class="btn bg-red-600 hover:bg-red-700 dark:bg-red-900/70 dark:hover:bg-red-800/80 dark:text-red-300 text-white border-none rounded-xl px-6 shadow-sm transition-colors" @click="procesarBaja()">
                                 Confirmar Retiro
                             </button>
                         </div>
                     </div>
                     <form method="dialog" class="modal-backdrop">
                         <button @click="cerrarModalBaja()">cerrar</button>
+                    </form>
+                </dialog>
+
+                <!-- Dialog / Modal para Editar/Agregar Promoción -->
+                <dialog id="modal_editar_promocion" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarModalPromo()">
+                    <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-6 border border-gray-100 dark:border-slate-700">
+                        <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2" x-text="editandoPromo === 'nuevo' ? 'Crear Promoción' : 'Editar Promoción'"></h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            Configura el precio especial para: <span class="font-semibold text-gray-900 dark:text-white" x-text="productoSeleccionado ? productoSeleccionado.name : ''"></span>
+                        </p>
+                        
+                        <div class="flex flex-col gap-4">
+                            <div x-show="editandoPromo === 'nuevo'">
+                                <label class="label text-xs font-bold uppercase text-gray-500">Tipo de Promoción</label>
+                                <select x-model="promoTemp.tipoNuevo" class="select select-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none">
+                                    <option value="promo">Descuento Especial / Texto</option>
+                                    <option value="mayor">Precio por Volumen (Mayorista)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="label text-xs font-bold uppercase text-gray-500">Precio de Venta</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">Bs.</span>
+                                        <input type="number" step="0.10" x-model.number="promoTemp.precio" class="input input-bordered w-full pl-10 bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl font-bold text-brand-600 dark:text-brand-400" />
+                                    </div>
+                                </div>
+                                <div x-show="editandoPromo === 'mayor' || (editandoPromo === 'nuevo' && promoTemp.tipoNuevo === 'mayor')">
+                                    <label class="label text-xs font-bold uppercase text-gray-500">Cantidad Mínima</label>
+                                    <input type="number" min="1" x-model.number="promoTemp.minQty" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl" />
+                                </div>
+                                <div x-show="editandoPromo === 'promo' || (editandoPromo === 'nuevo' && promoTemp.tipoNuevo === 'promo')" class="col-span-2">
+                                    <label class="label text-xs font-bold uppercase text-gray-500">Descripción (Ej: Descuento Empleado)</label>
+                                    <input type="text" x-model="promoTemp.texto" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-action flex justify-end gap-3 mt-6">
+                            <button class="btn btn-ghost rounded-xl px-6" @click="cerrarModalPromo()">Cancelar</button>
+                            <button class="btn bg-brand-600 hover:bg-brand-700 text-white border-none rounded-xl px-6 shadow-sm" @click="guardarPromocion()">Guardar Cambios</button>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarModalPromo()">cerrar</button>
+                    </form>
+                </dialog>
+
+                <!-- Dialog / Modal de Cobro -->
+                <dialog id="modal_cobrar" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarModalCobrar()">
+                    <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 max-w-4xl overflow-hidden shadow-2xl">
+                        <!-- HEADER COBRAR -->
+                        <div class="bg-brand-600 dark:bg-brand-700 text-white px-6 py-4 flex justify-between items-center">
+                            <h3 class="font-bold text-xl tracking-wide uppercase">Cobrar</h3>
+                            <button @click="cerrarModalCobrar()" class="btn btn-sm btn-circle btn-ghost text-white hover:bg-white/20">✕</button>
+                        </div>
+                        
+                        <div class="p-6 md:p-8 flex flex-col md:flex-row gap-8">
+                            
+                            <!-- COLUMNA IZQUIERDA (Montos y Métodos) -->
+                            <div class="flex-1 flex flex-col items-center">
+                                <!-- MONTO GIGANTE -->
+                                <div class="text-brand-700 dark:text-brand-400 font-bold text-6xl md:text-7xl mb-8 tracking-tighter">
+                                    Bs<span x-text="total.toFixed(2)"></span>
+                                </div>
+                                
+                                <!-- MÉTODOS DE PAGO -->
+                                <div class="flex gap-4 w-full justify-center mb-8">
+                                    <button @click="seleccionarMetodoCobro('efectivo')" 
+                                            :class="pago.metodo === 'efectivo' ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-900/20' : 'border-transparent hover:bg-gray-50 dark:hover:bg-slate-700'"
+                                            class="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all w-28">
+                                        <div class="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-xl shadow-sm flex items-center justify-center text-2xl">💵</div>
+                                        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Efectivo</span>
+                                    </button>
+                                    
+                                    <button @click="seleccionarMetodoCobro('qr')" 
+                                            :class="pago.metodo === 'qr' ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-900/20' : 'border-transparent hover:bg-gray-50 dark:hover:bg-slate-700'"
+                                            class="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all w-28">
+                                        <div class="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-xl shadow-sm flex items-center justify-center text-2xl">📱</div>
+                                        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">QR / Transf</span>
+                                    </button>
+                                    
+                                    <button @click="seleccionarMetodoCobro('mixto')" 
+                                            :class="pago.metodo === 'mixto' ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-900/20' : 'border-transparent hover:bg-gray-50 dark:hover:bg-slate-700'"
+                                            class="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all w-28 relative">
+                                        <div class="w-12 h-12 bg-gray-100 dark:bg-slate-800 rounded-xl shadow-sm flex items-center justify-center text-xl">💵📱</div>
+                                        <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Mixto</span>
+                                    </button>
+                                </div>
+                                
+                                <!-- INPUTS DE PAGO -->
+                                <div class="w-full max-w-md bg-gray-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-gray-200 dark:border-slate-700">
+                                    <div class="flex flex-col gap-4">
+                                        <div class="flex items-center gap-4" x-show="pago.metodo === 'efectivo' || pago.metodo === 'mixto'">
+                                            <label class="w-24 font-semibold text-gray-700 dark:text-gray-300 text-right">Efectivo</label>
+                                            <div class="relative flex-1">
+                                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-900 dark:text-white text-xl">Bs</span>
+                                                <input type="number" step="0.10" x-model.number="pago.montoEfectivo" class="input input-lg w-full pl-12 bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 font-bold text-2xl text-right focus:border-brand-500 focus:ring-brand-500" @focus="$event.target.select()" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-4" x-show="pago.metodo === 'qr' || pago.metodo === 'mixto'">
+                                            <label class="w-24 font-semibold text-gray-700 dark:text-gray-300 text-right">QR / Transf</label>
+                                            <div class="relative flex-1">
+                                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400 text-xl">Bs</span>
+                                                <input type="number" step="0.10" x-model.number="pago.montoQr" :disabled="pago.metodo === 'qr'" class="input input-lg w-full pl-12 bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 font-bold text-2xl text-right disabled:bg-gray-100 dark:disabled:bg-slate-800 disabled:text-gray-500" @focus="$event.target.select()" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="border-t-2 border-gray-200 dark:border-slate-700 mt-6 pt-4 flex justify-between items-center">
+                                        <span class="font-bold text-xl text-gray-900 dark:text-white" x-text="calculoPago.falta > 0 ? 'Falta Pagar' : 'Cambio'"></span>
+                                        <span class="font-bold text-2xl" 
+                                              :class="calculoPago.falta > 0 ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
+                                              Bs<span x-text="calculoPago.falta > 0 ? calculoPago.falta.toFixed(2) : calculoPago.cambio.toFixed(2)"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- NOTAS OBLIGATORIAS Opcional -->
+                                <div class="w-full max-w-md mt-4">
+                                    <textarea x-model="pago.nota" placeholder="Ingresar notas u observaciones sobre esta venta (Opcional)" class="textarea textarea-bordered w-full bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 rounded-xl resize-none h-16"></textarea>
+                                </div>
+                                
+                            </div>
+                            
+                            <!-- COLUMNA DERECHA (Botones de Acción) -->
+                            <div class="w-full md:w-64 flex flex-col gap-3 bg-gray-50 dark:bg-slate-900/30 p-4 rounded-2xl border border-gray-100 dark:border-slate-700 h-fit shrink-0">
+                                <button @click="procesarVenta(true)" :disabled="calculoPago.falta > 0" class="btn bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-800 dark:text-white border border-gray-200 dark:border-slate-600 rounded-xl h-14 shadow-sm flex gap-3 justify-start px-4 disabled:opacity-50 transition-colors">
+                                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                    F1 - Cobrar e Imprimir
+                                </button>
+                                
+                                <button @click="procesarVenta(false)" :disabled="calculoPago.falta > 0" class="btn bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-800 dark:text-white border border-gray-200 dark:border-slate-600 rounded-xl h-14 shadow-sm flex gap-3 justify-start px-4 disabled:opacity-50 transition-colors">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    F2 - Cobrar sin imprimir
+                                </button>
+                                
+                                <button @click="cerrarModalCobrar()" class="btn bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-800 dark:text-white border border-gray-200 dark:border-slate-600 rounded-xl h-14 shadow-sm flex gap-3 justify-start px-4 mt-2 transition-colors">
+                                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    ESC - Cancelar
+                                </button>
+                                
+                                <div class="mt-6 text-center text-sm font-bold text-brand-700 dark:text-brand-400">
+                                    Total de Artículos: <br>
+                                    <span class="text-3xl font-light" x-text="totalProductos"></span>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarModalCobrar()">cerrar</button>
                     </form>
                 </dialog>
 
@@ -453,17 +615,159 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('cartApp', () => ({
-                items: [
-                    { id: 1, name: 'Galletas de Chocolate Rellenas Clásicas', detail: 'Paquete 250g', priceNormal: 12.50, wholesalePrice: 10.00, minWholesaleQty: 6, promoPrice: 11.00, promoText: 'Descuento de la semana', priceCompra: 8.20, price: 12.50, qty: 3, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Galletas', dept: 'Abarrotes', stock: 45, tipoPrecio: 'normal' },
-                    { id: 2, name: 'Cereal de Maíz Azucarado Fortificado', detail: 'Caja 500g', priceNormal: 28.00, wholesalePrice: 24.00, minWholesaleQty: 4, promoPrice: 26.50, promoText: '2da unidad a mitad', priceCompra: 19.50, price: 28.00, qty: 1, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Cereal', dept: 'Desayuno', stock: 8, tipoPrecio: 'normal' },
-                    { id: 3, name: 'Papas Fritas Corte Fino', detail: 'Bolsa 150g', priceNormal: 15.00, wholesalePrice: 12.50, minWholesaleQty: 12, promoPrice: 13.50, promoText: 'Promo Fin de Semana', priceCompra: 9.00, price: 15.00, qty: 2, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Papas+Fritas', dept: 'Snacks', stock: 60, tipoPrecio: 'normal' },
-                    { id: 4, name: 'Detergente Líquido Multiusos Aroma Floral', detail: 'Botella 2L', priceNormal: 45.00, wholesalePrice: 40.00, minWholesaleQty: 3, promoPrice: 42.00, promoText: 'Limpieza total -10%', priceCompra: 31.00, price: 45.00, qty: 1, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Detergente', dept: 'Limpieza', stock: 15, tipoPrecio: 'normal' },
-                    { id: 5, name: 'Papel Higiénico Doble Hoja', detail: 'Paquete 6 rollos', priceNormal: 22.00, wholesalePrice: 19.50, minWholesaleQty: 5, promoPrice: 20.00, promoText: 'Pack Familiar', priceCompra: 14.00, price: 22.00, qty: 1, img: 'https://placehold.co/150x150/1e293b/FFFFFF?text=Papel', dept: 'Higiene', stock: 3, tipoPrecio: 'normal' }
-                ],
+                catalog: [],
+                items: [],
+                searchQuery: '',
+                searchResults: [],
+                showDropdown: false,
                 discount: 0.00,
                 itemPorEliminar: null,
                 productoSeleccionado: null,
+                editandoPromo: null,
+                bajaTemp: {
+                    motivo: 'vencimiento',
+                    otro: '',
+                    cantidad: 1
+                },
+                promoTemp: {
+                    precio: 0,
+                    minQty: 1,
+                    texto: '',
+                    tipoNuevo: 'promo'
+                },
+                pago: {
+                    metodo: 'efectivo',
+                    montoEfectivo: 0,
+                    montoQr: 0,
+                    nota: ''
+                },
                 
+                get calculoPago() {
+                    const totalIngresado = parseFloat(this.pago.montoEfectivo || 0) + parseFloat(this.pago.montoQr || 0);
+                    const dif = totalIngresado - this.total;
+                    return {
+                        cambio: dif > 0 ? dif : 0,
+                        falta: dif < 0 ? Math.abs(dif) : 0
+                    };
+                },
+                
+                async init() {
+                    try {
+                        const response = await fetch('mock_products.json');
+                        if (!response.ok) throw new Error('Error de red');
+                        this.catalog = await response.json();
+                        // El carrito (this.items) inicia vacío
+                    } catch (error) {
+                        console.error('Error al cargar productos:', error);
+                    }
+                },
+                
+                buscarProducto() {
+                    if (this.searchQuery.trim() === '') {
+                        this.searchResults = [];
+                        this.showDropdown = false;
+                        return;
+                    }
+                    const q = this.searchQuery.toLowerCase();
+                    this.searchResults = this.catalog.filter(p => 
+                        p.name.toLowerCase().includes(q) || 
+                        p.id.toString() === q ||
+                        p.dept.toLowerCase().includes(q)
+                    );
+                    this.showDropdown = true;
+                },
+                
+                seleccionarProductoBuscado(prod) {
+                    this.productoSeleccionado = { ...prod };
+                    this.searchQuery = prod.name;
+                    this.showDropdown = false;
+                },
+                
+                agregarAlCarrito() {
+                    if (!this.productoSeleccionado) return;
+                    
+                    const existe = this.items.find(i => i.id === this.productoSeleccionado.id);
+                    if (existe) {
+                        existe.qty++;
+                    } else {
+                        this.items.push({ ...this.productoSeleccionado, qty: 1 });
+                    }
+                    
+                    this.searchQuery = '';
+                    this.searchResults = [];
+                    this.productoSeleccionado = null;
+                },
+                
+                abrirModalPromo(tipo) {
+                    if (!this.productoSeleccionado) return;
+                    this.editandoPromo = tipo;
+                    
+                    if (tipo === 'mayor') {
+                        this.promoTemp.precio = this.productoSeleccionado.wholesalePrice || this.productoSeleccionado.priceNormal;
+                        this.promoTemp.minQty = this.productoSeleccionado.minWholesaleQty || 2;
+                        this.promoTemp.texto = '';
+                    } else if (tipo === 'promo') {
+                        this.promoTemp.precio = this.productoSeleccionado.promoPrice || this.productoSeleccionado.priceNormal;
+                        this.promoTemp.texto = this.productoSeleccionado.promoText || 'Descuento especial';
+                        this.promoTemp.minQty = 1;
+                    } else { 
+                        // 'nuevo'
+                        this.promoTemp.precio = this.productoSeleccionado.priceNormal || 0;
+                        this.promoTemp.minQty = 2;
+                        this.promoTemp.texto = 'Promoción nueva';
+                        this.promoTemp.tipoNuevo = 'promo';
+                    }
+                    
+                    document.getElementById('modal_editar_promocion').showModal();
+                },
+
+                cerrarModalPromo() {
+                    document.getElementById('modal_editar_promocion').close();
+                },
+
+                guardarPromocion() {
+                    if (!this.productoSeleccionado) return;
+                    
+                    let prodEnCatalogo = this.catalog.find(p => p.id === this.productoSeleccionado.id);
+                    if (!prodEnCatalogo) return;
+
+                    let tipoGuardar = this.editandoPromo === 'nuevo' ? this.promoTemp.tipoNuevo : this.editandoPromo;
+
+                    if (tipoGuardar === 'mayor') {
+                        prodEnCatalogo.wholesalePrice = parseFloat(this.promoTemp.precio);
+                        prodEnCatalogo.minWholesaleQty = parseInt(this.promoTemp.minQty);
+                    } else if (tipoGuardar === 'promo') {
+                        prodEnCatalogo.promoPrice = parseFloat(this.promoTemp.precio);
+                        prodEnCatalogo.promoText = this.promoTemp.texto;
+                    }
+                    
+                    // Actualizar el precio activo si aplica
+                    if (prodEnCatalogo.tipoPrecio === tipoGuardar) {
+                         prodEnCatalogo.price = tipoGuardar === 'mayor' ? prodEnCatalogo.wholesalePrice : prodEnCatalogo.promoPrice;
+                    }
+
+                    // Actualizar memoria (UI)
+                    this.productoSeleccionado = { ...prodEnCatalogo };
+                    
+                    // Si el producto ya está en el carrito, actualizar también ahí
+                    let prodEnCarrito = this.items.find(i => i.id === prodEnCatalogo.id);
+                    if (prodEnCarrito) {
+                        Object.assign(prodEnCarrito, prodEnCatalogo);
+                        if (prodEnCarrito.tipoPrecio === tipoGuardar) {
+                             prodEnCarrito.price = tipoGuardar === 'mayor' ? prodEnCarrito.wholesalePrice : prodEnCarrito.promoPrice;
+                        }
+                    }
+
+                    this.cerrarModalPromo();
+                    
+                    // Notificación Toast
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed bottom-4 right-4 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-2xl text-sm z-50 flex items-center gap-3 animate-bounce';
+                    toast.innerHTML = `<div class="bg-brand-500 rounded-full p-1"><svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div> <span class="font-medium">Promoción actualizada y guardada exitosamente.</span>`;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 4000);
+                },
+
                 get subtotal() {
                     return this.items.reduce((sum, item) => sum + (item.price * item.qty), 0);
                 },
@@ -525,8 +829,50 @@
                     document.getElementById('modal_baja_producto').close();
                 },
                 procesarBaja() {
-                    alert('Baja registrada correctamente en el inventario para: ' + this.productoSeleccionado.name);
+                    let razon = this.bajaTemp.motivo === 'otro' ? this.bajaTemp.otro : this.bajaTemp.motivo;
+                    alert('Baja registrada correctamente.\nProducto: ' + this.productoSeleccionado.name + '\nCantidad: ' + this.bajaTemp.cantidad + '\nMotivo: ' + razon);
                     this.cerrarModalBaja();
+                    this.bajaTemp.motivo = 'vencimiento';
+                    this.bajaTemp.otro = '';
+                    this.bajaTemp.cantidad = 1;
+                },
+                
+                abrirModalCobrar() {
+                    this.seleccionarMetodoCobro('efectivo');
+                    this.pago.nota = '';
+                    document.getElementById('modal_cobrar').showModal();
+                },
+                
+                cerrarModalCobrar() {
+                    document.getElementById('modal_cobrar').close();
+                },
+                
+                seleccionarMetodoCobro(metodo) {
+                    this.pago.metodo = metodo;
+                    if (metodo === 'efectivo') {
+                        this.pago.montoEfectivo = parseFloat(this.total.toFixed(2));
+                        this.pago.montoQr = 0;
+                    } else if (metodo === 'qr') {
+                        this.pago.montoEfectivo = 0;
+                        this.pago.montoQr = parseFloat(this.total.toFixed(2));
+                    } else {
+                        // mixto: poner todo en efectivo por defecto y que el cajero lo divida
+                        this.pago.montoEfectivo = parseFloat(this.total.toFixed(2));
+                        this.pago.montoQr = 0;
+                    }
+                },
+                
+                procesarVenta(imprimir) {
+                    if (this.calculoPago.falta > 0) return;
+                    
+                    let detallePago = `Efectivo: Bs ${this.pago.montoEfectivo}\nQR: Bs ${this.pago.montoQr}\nCambio: Bs ${this.calculoPago.cambio.toFixed(2)}`;
+                    let obs = this.pago.nota ? `\nNota: ${this.pago.nota}` : '';
+                    
+                    alert('¡Venta Completada Exitosamente!' + (imprimir ? '\nImprimiendo recibo...' : '') + '\n\nTotal Cobrado: Bs ' + this.total.toFixed(2) + '\n' + detallePago + obs);
+                    
+                    this.items = []; // Vaciar carrito
+                    this.productoSeleccionado = null;
+                    this.cerrarModalCobrar();
                 }
             }))
         });
