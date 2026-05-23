@@ -356,21 +356,21 @@
                             <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
                                 <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-4">Gestión de Caja</h3>
                                 <div class="flex flex-col gap-3">
-                                    <button class="btn btn-outline border-gray-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 justify-start rounded-xl w-full normal-case text-xs gap-3">
+                                    <button @click="abrirModalCaja()" class="btn btn-outline border-gray-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 justify-start rounded-xl w-full normal-case text-xs gap-3">
                                         <svg class="w-5 h-5 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
                                         <span class="truncate">Entradas y salidas de dinero</span>
                                     </button>
                                     
-                                    <button class="btn btn-outline border-gray-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 justify-start rounded-xl w-full normal-case text-xs gap-3">
+                                    <button @click="abrirModalHistorial()" class="btn btn-outline border-gray-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 justify-start rounded-xl w-full normal-case text-xs gap-3">
                                         <svg class="w-5 h-5 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         <span class="truncate">Historial de ventas del Día</span>
                                     </button>
                                     
-                                    <button class="btn btn-outline border-gray-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 justify-start rounded-xl w-full normal-case text-xs gap-3">
+                                    <button @click="abrirModalDevolucion()" class="btn btn-outline border-gray-200 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 justify-start rounded-xl w-full normal-case text-xs gap-3">
                                         <svg class="w-5 h-5 text-gray-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                         </svg>
@@ -608,6 +608,401 @@
                     </form>
                 </dialog>
 
+                <!-- Modal Historial de Ventas -->
+                <dialog id="modal_historial_ventas" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarModalHistorial()">
+                    <div class="modal-box bg-white dark:bg-slate-900 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 max-w-5xl w-full h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+                        <!-- HEADER -->
+                        <div class="bg-brand-600 dark:bg-brand-800 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                            <h3 class="font-bold text-xl tracking-wide uppercase">HISTORIAL DE VENTAS</h3>
+                            <button @click="cerrarModalHistorial()" class="btn btn-sm btn-circle btn-ghost text-white hover:bg-white/20 border-none">✕</button>
+                        </div>
+                        
+                        <!-- BODY -->
+                        <div class="flex-1 flex overflow-hidden">
+                            <!-- Left Panel: List and Filters -->
+                            <div class="w-1/2 flex flex-col border-r border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50">
+                                <!-- Search & Filters top -->
+                                <div class="p-4 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shrink-0">
+                                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 block">Puedes buscar por folio o nombre del ticket:</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        </span>
+                                        <input type="text" x-model="filtroHistorialBusqueda" class="input input-sm w-full pl-10 bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 focus:border-brand-500 rounded-lg" placeholder="Buscar..." />
+                                    </div>
+                                </div>
+                                
+                                <!-- Table List -->
+                                <div class="flex-1 overflow-y-auto">
+                                    <table class="table table-sm w-full">
+                                        <thead class="bg-gray-100 dark:bg-slate-800 sticky top-0 z-10 text-gray-600 dark:text-gray-300">
+                                            <tr>
+                                                <th class="text-center font-semibold text-xs border-r border-gray-200 dark:border-slate-700/50 py-3">Folio</th>
+                                                <th class="text-center font-semibold text-xs border-r border-gray-200 dark:border-slate-700/50 py-3">Arts</th>
+                                                <th class="text-center font-semibold text-xs border-r border-gray-200 dark:border-slate-700/50 py-3">Hora</th>
+                                                <th class="text-right font-semibold text-xs py-3">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="ticket in historialFiltrado" :key="ticket.folio">
+                                                <tr @click="ticketSeleccionado = ticket" 
+                                                    :class="ticketSeleccionado?.folio === ticket.folio ? 'bg-brand-600 text-white dark:bg-brand-700' : 'hover:bg-brand-50 dark:hover:bg-slate-800 cursor-pointer text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-slate-700/50'">
+                                                    <td class="text-center font-medium" x-text="ticket.folio"></td>
+                                                    <td class="text-center" x-text="ticket.items"></td>
+                                                    <td class="text-center" x-text="ticket.hora"></td>
+                                                    <td class="text-right font-medium" :class="ticket.estado === 'cancelado' && ticketSeleccionado?.folio !== ticket.folio ? 'text-red-500 line-through decoration-red-500/50' : ''" x-text="'Bs ' + ticket.total.toFixed(2)"></td>
+                                                </tr>
+                                            </template>
+                                            <tr x-show="historialFiltrado.length === 0">
+                                                <td colspan="4" class="text-center py-6 text-gray-400">No se encontraron tickets.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Bottom Filters -->
+                                <div class="p-4 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 shrink-0 text-sm flex flex-col gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <label class="w-16 text-right font-semibold text-gray-600 dark:text-gray-400">Del día:</label>
+                                        <input type="date" value="2026-05-21" class="input input-sm border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 rounded-lg flex-1 text-xs" />
+                                        <button class="btn btn-sm btn-outline border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 rounded-lg px-3 hover:bg-gray-50 normal-case">📅 Hoy</button>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <label class="w-16 text-right font-semibold text-gray-600 dark:text-gray-400">Cajero:</label>
+                                        <select x-model="filtroHistorialCajero" class="select select-sm border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 rounded-lg flex-1 text-xs font-normal">
+                                            <option>-- Todos los cajeros --</option>
+                                            <option>Admin</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center justify-end gap-2 mt-1">
+                                        <input type="checkbox" class="checkbox checkbox-sm checkbox-success rounded" />
+                                        <span class="text-gray-600 dark:text-gray-400 font-medium text-xs">Ventas a Crédito</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Panel: Ticket Details -->
+                            <div class="w-1/2 flex flex-col relative bg-white dark:bg-slate-900">
+                                <template x-if="ticketSeleccionado">
+                                    <div class="flex flex-col h-full relative p-6">
+                                        
+                                        <!-- Watermark -->
+                                        <div x-show="ticketSeleccionado.estado === 'cancelado'" class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0">
+                                            <span class="text-red-500/10 dark:text-red-500/5 font-black text-6xl md:text-7xl tracking-widest uppercase transform -rotate-45 px-8 py-2 rounded-xl">CANCELADO</span>
+                                        </div>
+                                        
+                                        <h3 class="text-center font-bold text-brand-700 dark:text-brand-400 text-lg mb-6 relative z-10" x-text="'Ticket ' + ticketSeleccionado.folio"></h3>
+                                        
+                                        <!-- Info header -->
+                                        <div class="flex justify-between items-start mb-6 text-sm text-gray-700 dark:text-gray-300 relative z-10 bg-gray-50/80 dark:bg-slate-800/80 border border-gray-100 dark:border-slate-700 p-4 rounded-2xl shadow-sm">
+                                            <div class="flex flex-col gap-1.5">
+                                                <div><span class="font-bold w-16 inline-block text-gray-500 dark:text-gray-400">Folio:</span> <span class="font-semibold" x-text="ticketSeleccionado.folio"></span></div>
+                                                <div><span class="font-bold w-16 inline-block text-gray-500 dark:text-gray-400">Cajero:</span> <span class="font-semibold" x-text="ticketSeleccionado.cajero"></span></div>
+                                                <div><span class="font-bold w-16 inline-block text-gray-500 dark:text-gray-400">Cliente:</span> <span class="font-semibold" x-text="ticketSeleccionado.cliente"></span></div>
+                                            </div>
+                                            <div class="flex flex-col items-end gap-2">
+                                                <div class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border flex items-center gap-1 shadow-sm"
+                                                     :class="ticketSeleccionado.estado === 'cancelado' ? 'bg-red-50 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-800' : 'bg-green-50 border-green-200 text-green-600 dark:bg-green-900/20 dark:border-green-800'">
+                                                    <span x-text="ticketSeleccionado.estado === 'cancelado' ? '❌ Cancelado' : '✅ Pagado'"></span>
+                                                </div>
+                                                <div class="text-xs text-gray-500 font-medium mt-1 text-right" x-text="ticketSeleccionado.fecha + '<br>' + ticketSeleccionado.hora"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Detail Table -->
+                                        <div class="flex-1 overflow-y-auto mb-4 border border-gray-200 dark:border-slate-700 rounded-xl relative z-10 bg-white dark:bg-slate-900 shadow-sm">
+                                            <table class="table table-sm w-full">
+                                                <thead class="bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-gray-400 sticky top-0 z-10 shadow-sm">
+                                                    <tr>
+                                                        <th class="text-center w-12 border-b border-r border-gray-200 dark:border-slate-700 py-3">Cant.</th>
+                                                        <th class="border-b border-r border-gray-200 dark:border-slate-700 py-3">Descripción</th>
+                                                        <th class="text-right border-b border-gray-200 dark:border-slate-700 py-3">Importe</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <template x-for="(prod, i) in ticketSeleccionado.productos" :key="i">
+                                                        <tr class="hover:bg-brand-50 dark:hover:bg-slate-800 border-b border-gray-100 dark:border-slate-700/50 group cursor-pointer text-gray-700 dark:text-gray-300 transition-colors">
+                                                            <td class="text-center font-medium border-r border-gray-100 dark:border-slate-700/50" x-text="prod.cant"></td>
+                                                            <td class="font-medium text-[11px] border-r border-gray-100 dark:border-slate-700/50 group-hover:text-brand-700 dark:group-hover:text-brand-400" x-text="prod.desc"></td>
+                                                            <td class="text-right font-medium" x-text="'Bs ' + prod.importe.toFixed(2)"></td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        <button class="btn btn-sm btn-outline border-gray-200 hover:border-gray-300 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400 w-full mb-6 relative z-10 rounded-xl normal-case font-medium transition-all"
+                                                :disabled="ticketSeleccionado.estado === 'cancelado'">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                                            Devolver artículo seleccionado
+                                        </button>
+                                        
+                                        <!-- Totals -->
+                                        <div class="flex justify-between items-end mb-6 relative z-10 px-2">
+                                            <button class="btn btn-sm btn-outline border-gray-200 dark:border-slate-700 text-gray-500 rounded-xl hover:bg-gray-50 normal-case px-4 shadow-sm">... Notas</button>
+                                            <div class="flex flex-col gap-3 text-right">
+                                                <div class="flex justify-end gap-6 text-sm font-semibold text-gray-600 dark:text-gray-400 items-center">
+                                                    <span>Pago con:</span>
+                                                    <span class="w-24 text-gray-900 dark:text-white text-base" x-text="'Bs ' + ticketSeleccionado.pagado.toFixed(2)"></span>
+                                                </div>
+                                                <div class="flex justify-end gap-6 text-2xl font-bold items-center">
+                                                    <span class="text-gray-800 dark:text-gray-200">Total:</span>
+                                                    <span class="w-24 text-brand-600 dark:text-brand-400" x-text="'Bs ' + ticketSeleccionado.total.toFixed(2)"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Footer Actions -->
+                                        <div class="flex gap-4 mt-auto pt-5 border-t border-gray-100 dark:border-slate-700 relative z-10">
+                                            <button class="btn bg-brand-600 hover:bg-brand-700 text-white border-none flex-1 rounded-2xl shadow-lg shadow-brand-500/20 normal-case transition-all">
+                                                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                                Imprimir copia
+                                            </button>
+                                        </div>
+                                        
+                                    </div>
+                                </template>
+                                <template x-if="!ticketSeleccionado">
+                                    <div class="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-600">
+                                        <svg class="w-20 h-20 mb-4 opacity-50 text-gray-300 dark:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                        <p class="font-medium text-lg">Seleccione un ticket para ver sus detalles</p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        
+                        <!-- Modal Footer -->
+                        <div class="bg-gray-100 dark:bg-slate-800/80 px-6 py-4 flex justify-start shrink-0 border-t border-gray-200 dark:border-slate-700">
+                            <button @click="cerrarModalHistorial()" class="btn bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 rounded-xl shadow-sm font-medium text-sm px-6 normal-case transition-all">
+                                <kbd class="kbd kbd-sm mr-2 dark:bg-slate-800 dark:border-slate-600">Esc</kbd> Cerrar Ventana
+                            </button>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarModalHistorial()">cerrar</button>
+                    </form>
+                </dialog>
+
+                <!-- Modal Devoluciones -->
+                <dialog id="modal_devoluciones" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarModalDevolucion()">
+                    <div class="modal-box bg-white dark:bg-slate-900 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 max-w-5xl w-full h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+                        <!-- HEADER -->
+                        <div class="bg-amber-600 dark:bg-amber-700 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                            <div class="flex items-center gap-6">
+                                <div class="flex items-center gap-3">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                                    <h3 class="font-bold text-xl tracking-wide uppercase">Devoluciones</h3>
+                                </div>
+                                <div class="bg-amber-800/40 p-1.5 rounded-xl flex text-sm font-semibold shadow-inner">
+                                    <button @click="tipoDevolucion = 'con_ticket'" :class="tipoDevolucion === 'con_ticket' ? 'bg-white text-amber-700 shadow-md' : 'text-amber-100 hover:text-white hover:bg-amber-800/60'" class="px-5 py-1.5 rounded-lg transition-all">Con Ticket</button>
+                                    <button @click="tipoDevolucion = 'libre'" :class="tipoDevolucion === 'libre' ? 'bg-white text-amber-700 shadow-md' : 'text-amber-100 hover:text-white hover:bg-amber-800/60'" class="px-5 py-1.5 rounded-lg transition-all">Devolución Libre</button>
+                                </div>
+                            </div>
+                            <button @click="cerrarModalDevolucion()" class="btn btn-sm btn-circle btn-ghost text-white hover:bg-white/20 border-none">✕</button>
+                        </div>
+                        
+                        <!-- BODY CON TICKET -->
+                        <div x-show="tipoDevolucion === 'con_ticket'" class="flex-1 flex overflow-hidden">
+                            <!-- Left Panel: Ticket Lookup -->
+                            <div class="w-1/3 flex flex-col border-r border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 p-6">
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-2">Buscar Venta</h4>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Ingrese el número de folio del ticket para procesar una devolución controlada.</p>
+                                
+                                <div class="flex flex-col gap-3">
+                                    <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">Número de Folio / Ticket</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" x-model="devolucionBusqueda" @keyup.enter="buscarTicketDevolucion()" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-amber-500 flex-1 rounded-xl font-mono text-lg" placeholder="Ej: 5" />
+                                        <button @click="buscarTicketDevolucion()" class="btn bg-amber-500 hover:bg-amber-600 text-white border-none rounded-xl">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <template x-if="ticketDevolucion">
+                                    <div class="mt-8 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm animate-fade-in-up">
+                                        <h5 class="font-bold text-gray-800 dark:text-white border-b border-gray-100 dark:border-slate-700 pb-2 mb-3 flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            Ticket Encontrado
+                                        </h5>
+                                        <div class="text-sm flex flex-col gap-2 text-gray-600 dark:text-gray-400">
+                                            <div class="flex justify-between"><span>Cajero:</span> <span class="font-semibold text-gray-900 dark:text-white" x-text="ticketDevolucion.cajero"></span></div>
+                                            <div class="flex justify-between"><span>Fecha:</span> <span class="font-semibold text-gray-900 dark:text-white" x-text="ticketDevolucion.fecha + ' ' + ticketDevolucion.hora"></span></div>
+                                            <div class="flex justify-between border-t border-gray-100 dark:border-slate-700 pt-2 mt-1"><span>Total original:</span> <span class="font-bold text-amber-600 dark:text-amber-500" x-text="'Bs ' + ticketDevolucion.total.toFixed(2)"></span></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <!-- Right Panel: Items to Return -->
+                            <div class="w-2/3 flex flex-col relative bg-white dark:bg-slate-900">
+                                <template x-if="ticketDevolucion">
+                                    <div class="flex flex-col h-full">
+                                        <div class="p-6 pb-2 border-b border-gray-100 dark:border-slate-700 shrink-0">
+                                            <h3 class="font-bold text-gray-800 dark:text-white text-lg">Seleccionar Artículos a Devolver</h3>
+                                            <p class="text-sm text-gray-500">Indique la cantidad de los artículos que el cliente desea retornar.</p>
+                                        </div>
+                                        
+                                        <!-- Table -->
+                                        <div class="flex-1 overflow-y-auto p-6">
+                                            <table class="table table-sm w-full border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                                                <thead class="bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-gray-300">
+                                                    <tr>
+                                                        <th class="py-3 px-4">Artículo</th>
+                                                        <th class="text-center py-3">Precio Unit.</th>
+                                                        <th class="text-center py-3">Cant. Orig.</th>
+                                                        <th class="text-center py-3 w-32 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400">Cant. a Devolver</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <template x-for="(prod, i) in ticketDevolucion.productos" :key="i">
+                                                        <tr class="border-b border-gray-100 dark:border-slate-700/50 group">
+                                                            <td class="font-medium px-4 py-3 text-gray-800 dark:text-gray-200">
+                                                                <div x-text="prod.desc"></div>
+                                                                <!-- Motivo Dropdown -->
+                                                                <div x-show="prod.devolverCant > 0" class="mt-2 text-xs">
+                                                                    <select x-model="prod.motivo" class="select select-xs border-gray-200 bg-gray-50 dark:border-slate-600 dark:bg-slate-800 rounded font-normal text-gray-500">
+                                                                        <option value="cambio">Cambio de opinión</option>
+                                                                        <option value="defecto">Producto defectuoso</option>
+                                                                        <option value="error">Error del cajero</option>
+                                                                    </select>
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-center py-3 text-gray-600 dark:text-gray-400" x-text="'Bs ' + (prod.importe / prod.cant).toFixed(2)"></td>
+                                                            <td class="text-center py-3 font-semibold text-gray-600 dark:text-gray-400" x-text="prod.cant"></td>
+                                                            <td class="text-center py-3 bg-amber-50/50 dark:bg-amber-900/10">
+                                                                <div class="flex items-center justify-center gap-2">
+                                                                    <button @click="prod.devolverCant > 0 ? prod.devolverCant-- : null" class="btn btn-xs btn-circle btn-ghost border border-gray-300 dark:border-slate-600">-</button>
+                                                                    <span class="w-6 font-bold text-amber-600 dark:text-amber-500" x-text="prod.devolverCant"></span>
+                                                                    <button @click="prod.devolverCant < prod.cant ? prod.devolverCant++ : null" class="btn btn-xs btn-circle btn-ghost border border-gray-300 dark:border-slate-600">+</button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        <!-- Footer / Totals -->
+                                        <div class="bg-gray-50 dark:bg-slate-800 p-6 border-t border-gray-200 dark:border-slate-700 flex justify-between items-center shrink-0">
+                                            <div class="text-sm font-medium text-gray-500">
+                                                Asegúrese de recibir los artículos antes de reembolsar.
+                                            </div>
+                                            <div class="flex items-center gap-6">
+                                                <div class="flex flex-col text-right">
+                                                    <span class="text-gray-500 dark:text-gray-400 text-sm font-semibold">Total a Reembolsar:</span>
+                                                    <span class="text-3xl font-black text-amber-600 dark:text-amber-500" x-text="'Bs ' + montoReembolso.toFixed(2)"></span>
+                                                </div>
+                                                <button @click="procesarDevolucion()" :disabled="montoReembolso <= 0" class="btn bg-amber-500 hover:bg-amber-600 text-white border-none rounded-2xl shadow-lg shadow-amber-500/30 px-8 h-14 text-lg normal-case disabled:opacity-50">
+                                                    Procesar Devolución
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                
+                                <template x-if="!ticketDevolucion">
+                                    <div class="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 p-8 text-center">
+                                        <div class="w-24 h-24 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                                            <svg class="w-12 h-12 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                        </div>
+                                        <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">Esperando Ticket</h3>
+                                        <p class="text-gray-500 max-w-sm">Por favor, busque un ticket en el panel izquierdo para cargar los artículos disponibles para devolución.</p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- BODY LIBRE (Mockup Temporal) -->
+                        <div x-show="tipoDevolucion === 'libre'" class="flex-1 flex overflow-hidden" x-cloak>
+                            <div class="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50 dark:bg-slate-900/50">
+                                <div class="w-24 h-24 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-6 text-amber-500">
+                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Devolución Libre (Sin Ticket)</h3>
+                                <p class="text-gray-500 dark:text-gray-400 max-w-lg mb-8 leading-relaxed">
+                                    En este modo tendrás un buscador de productos idéntico al de ventas principal. Podrás escanear o buscar artículos manualmente para añadirlos a una "lista de devolución" y reembolsar el monto cuando el cliente no disponga del ticket original.
+                                </p>
+                                <div class="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 px-6 py-4 rounded-xl font-medium shadow-sm">
+                                    ⚠️ Esta sección se programará en el backend con FastAPI para reutilizar el componente de búsqueda principal.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarModalDevolucion()">cerrar</button>
+                    </form>
+                </dialog>
+
+                <!-- Modal Entradas y Salidas de Caja -->
+                <dialog id="modal_caja" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarModalCaja()">
+                    <div class="modal-box bg-white dark:bg-slate-900 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 max-w-md w-full flex flex-col overflow-hidden shadow-2xl relative">
+                        <!-- HEADER CON TABS -->
+                        <div class="bg-gray-100 dark:bg-slate-800 p-2 flex justify-between items-center shrink-0 border-b border-gray-200 dark:border-slate-700">
+                            <div class="bg-white/50 dark:bg-slate-900/50 p-1.5 rounded-2xl flex text-sm font-bold w-full shadow-inner relative">
+                                <button @click="movimientoCaja.tipo = 'entrada'" :class="movimientoCaja.tipo === 'entrada' ? 'bg-teal-600 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'" class="flex-1 py-2.5 rounded-xl transition-all uppercase tracking-wider flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    Entrada
+                                </button>
+                                <button @click="movimientoCaja.tipo = 'salida'" :class="movimientoCaja.tipo === 'salida' ? 'bg-orange-500 text-white shadow-md' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'" class="flex-1 py-2.5 rounded-xl transition-all uppercase tracking-wider flex items-center justify-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                    Salida
+                                </button>
+                            </div>
+                            <button @click="cerrarModalCaja()" class="btn btn-sm btn-circle btn-ghost text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-700 absolute right-4 border-none">✕</button>
+                        </div>
+                        
+                        <!-- BODY -->
+                        <div class="p-8 flex flex-col gap-6">
+                            
+                            <!-- Cantidad -->
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Cantidad (Bs.)</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-2xl">Bs.</span>
+                                    <input type="number" x-model.number="movimientoCaja.monto" class="input input-lg w-full pl-14 bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 rounded-2xl font-black text-3xl text-gray-900 dark:text-white focus:border-brand-500 h-20 shadow-inner" placeholder="0.00" />
+                                </div>
+                            </div>
+
+                            <!-- Selector Razón (Solo en salida) -->
+                            <div x-show="movimientoCaja.tipo === 'salida'" class="flex flex-col gap-2" x-cloak>
+                                <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Razón / Proveedor</label>
+                                <select x-model="movimientoCaja.concepto" class="select select-lg w-full bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 rounded-2xl font-medium text-gray-700 dark:text-gray-200 focus:border-brand-500 shadow-sm">
+                                    <option value="" disabled>Seleccione una opción...</option>
+                                    <option value="pago_proveedor">Pago a Proveedor (Coca-Cola, Pil, etc.)</option>
+                                    <option value="retiro_dueno">Retiro del Dueño</option>
+                                    <option value="pago_servicios">Pago de Servicios (Luz, Agua, Internet)</option>
+                                    <option value="gastos_tienda">Gastos varios de la tienda</option>
+                                    <option value="otro">Otro concepto...</option>
+                                </select>
+                            </div>
+
+                            <!-- Comentarios -->
+                            <div class="flex flex-col gap-2">
+                                <label class="text-sm font-bold text-gray-700 dark:text-gray-300" x-text="movimientoCaja.tipo === 'entrada' ? 'Comentarios / Motivo' : 'Detalles adicionales'"></label>
+                                <input type="text" x-model="movimientoCaja.comentario" class="input w-full bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 rounded-xl focus:border-brand-500 shadow-sm" :placeholder="movimientoCaja.tipo === 'entrada' ? 'Ej: Sencillo inicial aportado por el dueño' : 'Especifique el nombre del proveedor o detalle'" />
+                            </div>
+
+                        </div>
+                        
+                        <!-- Modal Footer -->
+                        <div class="bg-gray-50 dark:bg-slate-800 px-6 py-5 flex justify-between shrink-0 border-t border-gray-200 dark:border-slate-700 items-center">
+                            <button class="btn btn-sm btn-ghost text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 font-semibold normal-case">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                                Ver pasados
+                            </button>
+                            <div class="flex gap-3">
+                                <button @click="cerrarModalCaja()" class="btn bg-white hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-200 rounded-xl px-6 normal-case font-medium shadow-sm transition-all">Cancelar</button>
+                                <button @click="guardarMovimientoCaja()" :disabled="!movimientoCaja.monto || movimientoCaja.monto <= 0 || (movimientoCaja.tipo === 'salida' && movimientoCaja.concepto === '')" class="btn border-none rounded-xl px-8 shadow-lg normal-case font-bold text-white transition-all disabled:opacity-50" :class="movimientoCaja.tipo === 'entrada' ? 'bg-teal-600 hover:bg-teal-700 shadow-teal-600/30' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-500/30'">
+                                    Guardar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarModalCaja()">cerrar</button>
+                    </form>
+                </dialog>
+
             </div>
         </main>
     </div>
@@ -620,6 +1015,22 @@
                 searchQuery: '',
                 searchResults: [],
                 showDropdown: false,
+                historialVentas: [
+                    { folio: 5, items: 1, hora: '8:02 pm', total: 8.00, cajero: 'Admin', cliente: 'Público en general', estado: 'completado', fecha: '21 de Mayo 2026', pagado: 100.00, productos: [{cant: 1, desc: 'FANTA GUARANA 1.5L', importe: 8.00}] },
+                    { folio: 4, items: 12, hora: '8:00 pm', total: 103.44, cajero: 'Admin', cliente: 'Público en general', estado: 'cancelado', fecha: '21 de Mayo 2026', pagado: 103.44, productos: [{cant: 2, desc: 'CEREAL CHOCAPIC', importe: 50.00}, {cant: 10, desc: 'GALLETAS MABEL', importe: 53.44}] },
+                ],
+                ticketSeleccionado: null,
+                filtroHistorialBusqueda: '',
+                filtroHistorialCajero: '-- Todos los cajeros --',
+                devolucionBusqueda: '',
+                ticketDevolucion: null,
+                tipoDevolucion: 'con_ticket',
+                movimientoCaja: {
+                    tipo: 'entrada',
+                    monto: '',
+                    concepto: '',
+                    comentario: ''
+                },
                 discount: 0.00,
                 itemPorEliminar: null,
                 productoSeleccionado: null,
@@ -774,6 +1185,81 @@
                 get total() {
                     return this.subtotal - this.discount;
                 },
+                
+                get historialFiltrado() {
+                    let search = this.filtroHistorialBusqueda.toLowerCase();
+                    return this.historialVentas.filter(t => {
+                        return search === '' || t.folio.toString().includes(search) || t.cliente.toLowerCase().includes(search);
+                    });
+                },
+                abrirModalHistorial() {
+                    this.ticketSeleccionado = this.historialVentas.length > 0 ? this.historialVentas[0] : null;
+                    document.getElementById('modal_historial_ventas').showModal();
+                },
+                cerrarModalHistorial() {
+                    document.getElementById('modal_historial_ventas').close();
+                },
+                
+                buscarTicketDevolucion() {
+                    const ticket = this.historialVentas.find(t => t.folio.toString() === this.devolucionBusqueda.trim());
+                    if (ticket && ticket.estado !== 'cancelado') {
+                        this.ticketDevolucion = JSON.parse(JSON.stringify(ticket));
+                        this.ticketDevolucion.productos.forEach(p => {
+                            p.devolverCant = 0;
+                            p.motivo = 'cambio';
+                        });
+                    } else {
+                        alert(ticket ? 'Este ticket ya se encuentra cancelado.' : 'No se encontró ningún ticket con ese folio.');
+                        this.ticketDevolucion = null;
+                    }
+                },
+                
+                get montoReembolso() {
+                    if (!this.ticketDevolucion) return 0;
+                    return this.ticketDevolucion.productos.reduce((sum, p) => sum + ( (p.importe / p.cant) * p.devolverCant ), 0);
+                },
+                
+                abrirModalDevolucion() {
+                    this.devolucionBusqueda = '';
+                    this.ticketDevolucion = null;
+                    document.getElementById('modal_devoluciones').showModal();
+                },
+                
+                cerrarModalDevolucion() {
+                    document.getElementById('modal_devoluciones').close();
+                },
+                
+                abrirModalCaja() {
+                    this.movimientoCaja = { tipo: 'entrada', monto: '', concepto: '', comentario: '' };
+                    document.getElementById('modal_caja').showModal();
+                },
+                
+                cerrarModalCaja() {
+                    document.getElementById('modal_caja').close();
+                },
+                
+                guardarMovimientoCaja() {
+                    if (!this.movimientoCaja.monto || this.movimientoCaja.monto <= 0) {
+                        alert('Por favor ingrese un monto válido mayor a 0.');
+                        return;
+                    }
+                    if (this.movimientoCaja.tipo === 'salida' && !this.movimientoCaja.concepto) {
+                        alert('Seleccione un concepto para la salida de dinero.');
+                        return;
+                    }
+                    alert(`${this.movimientoCaja.tipo === 'entrada' ? 'Entrada' : 'Salida'} de Bs. ${this.movimientoCaja.monto} procesada exitosamente.`);
+                    this.cerrarModalCaja();
+                },
+                
+                procesarDevolucion() {
+                    if (this.montoReembolso <= 0) {
+                        alert('Selecciona al menos un artículo para devolver.');
+                        return;
+                    }
+                    alert('Devolución procesada con éxito.\\nTotal reembolsado: Bs ' + this.montoReembolso.toFixed(2));
+                    this.cerrarModalDevolucion();
+                },
+
                 get totalProductos() {
                     return this.items.reduce((sum, item) => sum + item.qty, 0);
                 },
