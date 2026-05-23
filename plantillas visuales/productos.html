@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es" x-data="{ isDark: $persist(false), sidebarOpen: $persist(true) }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planti Dashboard - Inventario de Productos</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <!-- PLUGINS DE ALPINE -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@formkit/auto-animate/index.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f5f9f0', 100: '#ECF4E5', 200: '#d7e8c6', 300: '#bcda9e', 400: '#9bc66e', 500: '#7cb34a',
+                            600: '#6FA83A', 700: '#527E2B', 800: '#426524', 900: '#2F4A19',
+                            light: '#ECF4E5', DEFAULT: '#6FA83A', dark: '#527E2B', leaf: '#2F4A19'     
+                        },
+                        surface: { DEFAULT: '#f8fafc', dark: '#0f172a' }
+                    }
+                }
+            }
+        }
+        
+        document.addEventListener('htmx:load', function(evt) {
+            if (window.Alpine) {
+                Alpine.initTree(evt.detail.elt);
+            }
+        });
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        .sidebar-transition { 
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-surface dark:bg-surface-dark text-gray-800 dark:text-slate-200 font-sans transition-colors duration-300">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside hx-get="sidebar.html" hx-trigger="load" hx-swap="outerHTML"></aside>
+
+        <main class="flex-1 overflow-y-auto flex flex-col">
+            
+            <header hx-get="navbar.html" hx-trigger="load" hx-swap="outerHTML"></header>
+
+            <div class="p-6 md:p-8 flex-1" x-data="gestionInventario()">
+                
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Directorio de Productos</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Gestiona el inventario, precios y clasificaciones de tu minimarket.</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <input type="text" placeholder="Buscar producto, código..." class="input input-sm input-bordered w-64 pl-9 rounded-full bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm" />
+                        </div>
+                        <button class="btn btn-sm bg-brand-600 hover:bg-brand-700 text-white border-none rounded-full px-5 shadow-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Nuevo Producto
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE FILTROS -->
+                <div class="mb-6 flex flex-wrap items-center gap-2 relative z-20">
+                    
+                    <div class="flex items-center gap-2" x-init="if(typeof autoAnimate !== 'undefined') autoAnimate($el)">
+                        <template x-for="filtro in filtrosActivos" :key="filtro.id">
+                            <div class="flex items-center gap-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-3 py-1.5 rounded-lg text-sm shadow-sm group transition-colors">
+                                <span class="text-gray-500 dark:text-gray-400" x-text="filtro.campoLabel + ' ' + filtro.operadorLabel"></span>
+                                <span class="font-medium text-gray-900 dark:text-white" x-text="filtro.valorVisual"></span>
+                                <button @click="eliminarFiltro(filtro.id)" class="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 ml-1 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="relative">
+                        <button @click="abrirConstructorFiltros()" class="flex items-center justify-center w-8 h-8 bg-white dark:bg-slate-800 border border-dashed border-gray-300 dark:border-slate-600 rounded-lg hover:border-brand-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:hover:bg-brand-900/30 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </button>
+
+                        <div x-show="constructorFiltroAbierto" x-cloak @click.away="cerrarConstructorFiltros()"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                             class="absolute left-0 mt-2 w-[520px] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 z-50 overflow-hidden flex divide-x divide-gray-100 dark:divide-slate-700">
+                            
+                            <!-- Lista de Campos -->
+                            <div class="w-2/5 p-4 bg-gray-50/50 dark:bg-slate-900/50">
+                                <div class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-2">Campo a filtrar</div>
+                                <ul class="text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                                    <template x-for="campo in camposDisponibles">
+                                        <li>
+                                            <button @click="seleccionarCampo(campo)" 
+                                                    class="w-full text-left px-3 py-2 rounded-lg transition-colors flex justify-between items-center group"
+                                                    :class="filtroTemporal.campoId === campo.id ? 'bg-brand-100 text-brand-800 dark:bg-brand-900/50 dark:text-brand-300 font-medium' : 'hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-slate-800'">
+                                                <span x-text="campo.label"></span>
+                                                <svg x-show="filtroTemporal.campoId === campo.id" class="w-4 h-4 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                            </button>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+
+                            <!-- Operadores y Valores -->
+                            <div class="w-3/5 p-5 relative min-h-[300px] flex flex-col">
+                                
+                                <div x-show="!filtroTemporal.campoId" class="flex flex-col items-center justify-center text-center h-full text-gray-400 dark:text-gray-500 py-10 my-auto">
+                                    <svg class="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                    <p class="text-sm">Selecciona un campo a la izquierda para configurar el filtro.</p>
+                                </div>
+
+                                <div x-show="filtroTemporal.campoId" x-cloak class="flex flex-col h-full">
+                                    <h3 class="font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+                                        Filtrar por: <span class="badge badge-lg bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 border-none font-medium" x-text="filtroTemporal.campoLabel"></span>
+                                    </h3>
+
+                                    <div class="space-y-2 mb-6">
+                                        <template x-for="op in operadoresFiltrados">
+                                            <label class="flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors"
+                                                   :class="filtroTemporal.operadorId === op.id ? 'bg-gray-50 dark:bg-slate-900 border-gray-300 dark:border-gray-600 ring-2 ring-brand-100 dark:ring-brand-900/30' : 'border-gray-100 dark:border-slate-700 hover:bg-gray-50/50 dark:hover:bg-slate-700/50'">
+                                                <input type="radio" name="operador" class="radio radio-primary radio-sm border-gray-300 dark:border-gray-600" 
+                                                       :value="op.id" x-model="filtroTemporal.operadorId" @change="filtroTemporal.operadorLabel = op.label">
+                                                <span class="text-sm font-medium text-gray-800 dark:text-gray-200" x-text="op.label"></span>
+                                            </label>
+                                        </template>
+                                    </div>
+
+                                    <div class="mb-6">
+                                        <label class="label text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 px-1">Valor</label>
+                                        
+                                        <template x-if="filtroTemporal.tipoCampo === 'texto'">
+                                            <input type="text" x-model="filtroTemporal.valor" placeholder="Ej. Papelería..." class="input input-bordered w-full rounded-xl bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm">
+                                        </template>
+                                        
+                                        <template x-if="filtroTemporal.tipoCampo === 'numero'">
+                                            <input type="number" x-model="filtroTemporal.valor" placeholder="0.00" class="input input-bordered w-full rounded-xl bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm">
+                                        </template>
+
+                                        <template x-if="filtroTemporal.tipoCampo === 'fecha'">
+                                            <input type="date" x-model="filtroTemporal.valor" class="input input-bordered w-full rounded-xl bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm">
+                                        </template>
+                                    </div>
+
+                                    <div class="flex justify-end gap-2 border-t border-gray-100 dark:border-slate-700 pt-4 mt-auto">
+                                        <button @click="cerrarConstructorFiltros()" class="btn btn-sm btn-ghost text-gray-500 dark:text-gray-400">Cancelar</button>
+                                        <button @click="aplicarFiltroTemporal()" class="btn btn-sm bg-brand-600 hover:bg-brand-700 text-white border-none shadow shadow-brand-500/30 rounded-xl px-4">Aplicar Filtro</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ml-auto flex gap-2">
+                        <button @click="filtrosActivos = []" class="btn btn-sm btn-ghost text-gray-500 dark:text-gray-400" x-show="filtrosActivos.length > 0" x-cloak>Limpiar</button>
+                        <button class="btn btn-sm bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 rounded-full px-4">
+                            Guardar vista
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TABLA DE PRODUCTOS -->
+                <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden relative z-10">
+                    
+                    <div x-show="cargandoTabla" x-cloak class="absolute inset-0 bg-white/70 dark:bg-slate-800/70 z-10 flex items-center justify-center backdrop-blur-sm transition-opacity">
+                        <span class="loading loading-spinner loading-lg text-brand-600"></span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="table w-full">
+                            <thead class="bg-gray-50/50 dark:bg-slate-900/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-100 dark:border-slate-700">
+                                <tr>
+                                    <th class="w-12 px-6 py-4"><label><input type="checkbox" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></th>
+                                    <th class="py-4">Código</th>
+                                    <th class="py-4 w-1/4">Producto</th>
+                                    <th class="py-4">Proveedor</th>
+                                    <th class="py-4 text-center">Tipo Precio</th>
+                                    <th class="py-4 text-right">Precio Venta</th>
+                                    <th class="py-4 text-center">Existencia</th>
+                                    <th class="py-4 w-12 text-center"></th>
+                                </tr>
+                            </thead>
+                            
+                            <tbody class="text-gray-700 dark:text-gray-300 text-sm">
+                                <!-- Producto 1 (Ejemplo con imagen y promo) -->
+                                <tr class="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-50 dark:border-slate-700/50 group">
+                                    <td class="px-6"><label><input type="checkbox" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></td>
+                                    <td class="font-mono text-xs text-gray-500 dark:text-gray-400">BEB-042</td>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-white dark:bg-slate-700 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-slate-600">
+                                                <img src="https://img.freepik.com/vector-gratis/diseno-etiqueta-bebida-refrescante_23-2149429188.jpg" class="object-cover w-full h-full mix-blend-multiply dark:mix-blend-normal">
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-gray-900 dark:text-white line-clamp-1">Refresco Cola 2L</div>
+                                                <div class="text-[11px] text-gray-500 dark:text-gray-400">Bebidas > Gaseosas</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="font-medium">Embotelladora Nacional</div>
+                                        <div class="text-[10px] text-gray-400">Costo: Bs. 8.50</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-warning text-xs font-bold border-none px-2 py-0.5 rounded-md">Promoción</span>
+                                    </td>
+                                    <td class="text-right">
+                                        <div class="font-bold text-brand-600 dark:text-brand-400">Bs. 11.00</div>
+                                        <div class="text-[10px] text-gray-400 line-through">Bs. 13.00</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="font-bold text-gray-900 dark:text-white">45</span>
+                                    </td>
+                                    <td class="text-center px-4">
+                                        <button class="btn btn-ghost btn-xs btn-circle text-gray-400 hover:text-brand-600 dark:hover:text-brand-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <!-- Producto 2 (Ejemplo mayorista y bajo stock) -->
+                                <tr class="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-50 dark:border-slate-700/50 group">
+                                    <td class="px-6"><label><input type="checkbox" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></td>
+                                    <td class="font-mono text-xs text-gray-500 dark:text-gray-400">PAP-001</td>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-gray-100 dark:bg-slate-700 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-gray-900 dark:text-white line-clamp-1">Resma Papel Bond A4 75g</div>
+                                                <div class="text-[11px] text-gray-500 dark:text-gray-400">Librería > Papeles</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="font-medium">Distribuidora XYZ</div>
+                                        <div class="text-[10px] text-gray-400">Costo: Bs. 32.50</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 text-xs font-bold border-none px-2 py-0.5 rounded-md">Mayorista</span>
+                                    </td>
+                                    <td class="text-right">
+                                        <div class="font-bold text-gray-900 dark:text-white">Bs. 40.00</div>
+                                        <div class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">Mayor: Bs. 36.00 (+5u)</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-error text-white font-bold text-xs px-2 rounded-md">5</span>
+                                    </td>
+                                    <td class="text-center px-4">
+                                        <button class="btn btn-ghost btn-xs btn-circle text-gray-400 hover:text-brand-600 dark:hover:text-brand-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Producto 3 (Normal) -->
+                                <tr class="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-50 dark:border-slate-700/50 group">
+                                    <td class="px-6"><label><input type="checkbox" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></td>
+                                    <td class="font-mono text-xs text-gray-500 dark:text-gray-400">LIM-110</td>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-gray-100 dark:bg-slate-700 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-gray-900 dark:text-white line-clamp-1">Detergente en Polvo 1Kg</div>
+                                                <div class="text-[11px] text-gray-500 dark:text-gray-400">Limpieza > Ropa</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="font-medium">Limpieza Total S.A.</div>
+                                        <div class="text-[10px] text-gray-400">Costo: Bs. 18.20</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400 text-xs font-bold border-none px-2 py-0.5 rounded-md">Normal</span>
+                                    </td>
+                                    <td class="text-right">
+                                        <div class="font-bold text-gray-900 dark:text-white">Bs. 22.00</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="font-bold text-gray-900 dark:text-white">120</span>
+                                    </td>
+                                    <td class="text-center px-4">
+                                        <button class="btn btn-ghost btn-xs btn-circle text-gray-400 hover:text-brand-600 dark:hover:text-brand-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="px-6 py-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                        <div>Mostrando 3 de 452 productos</div>
+                        <div class="flex gap-1">
+                            <button class="btn btn-sm btn-ghost btn-square"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                            <button class="btn btn-sm btn-ghost btn-square bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">1</button>
+                            <button class="btn btn-sm btn-ghost btn-square">2</button>
+                            <button class="btn btn-sm btn-ghost btn-square">3</button>
+                            <button class="btn btn-sm btn-ghost btn-square"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function gestionInventario() {
+            return {
+                cargandoTabla: false, 
+                constructorFiltroAbierto: false,
+                
+                camposDisponibles: [
+                    { id: 'proveedor', label: 'Proveedor', tipo: 'texto' },
+                    { id: 'departamento', label: 'Departamento / Categoría', tipo: 'texto' },
+                    { id: 'precio_venta', label: 'Precio de Venta', tipo: 'numero' },
+                    { id: 'existencia', label: 'Existencia', tipo: 'numero' },
+                    { id: 'tipo_precio', label: 'Tipo (Promo, Mayorista)', tipo: 'texto' }
+                ],
+                operadores: {
+                    texto: [ { id: 'eq', label: 'es igual a' }, { id: 'cnt', label: 'contiene' } ],
+                    numero: [ { id: 'gt', label: 'es mayor que' }, { id: 'lt', label: 'es menor que' }, { id: 'eq', label: 'es igual a' } ],
+                    fecha: [ { id: 'aft', label: 'es después de' }, { id: 'bef', label: 'es antes de' } ]
+                },
+
+                filtrosActivos: [
+                    { id: 1, campoLabel: 'Departamento', operadorLabel: 'es', valorVisual: 'Bebidas' },
+                    { id: 2, campoLabel: 'Existencia', operadorLabel: 'es menor que', valorVisual: '10' }
+                ],
+
+                filtroTemporal: {
+                    campoId: null, campoLabel: '', tipoCampo: '', operadorId: null, operadorLabel: '', valor: ''
+                },
+
+                get operadoresFiltrados() {
+                    if (!this.filtroTemporal.tipoCampo) return [];
+                    return this.operadores[this.filtroTemporal.tipoCampo] || [];
+                },
+
+                actualizarTabla() {
+                    this.cargandoTabla = true;
+                    setTimeout(() => this.cargandoTabla = false, 600); 
+                },
+
+                eliminarFiltro(id) {
+                    this.filtrosActivos = this.filtrosActivos.filter(f => f.id !== id);
+                    this.actualizarTabla(); 
+                },
+
+                abrirConstructorFiltros() {
+                    this.constructorFiltroAbierto = true;
+                },
+
+                cerrarConstructorFiltros() {
+                    this.constructorFiltroAbierto = false;
+                    this.resetFiltroTemporal();
+                },
+
+                resetFiltroTemporal() {
+                    this.filtroTemporal = { campoId: null, campoLabel: '', tipoCampo: '', operadorId: null, operadorLabel: '', valor: '' };
+                },
+
+                seleccionarCampo(campo) {
+                    this.resetFiltroTemporal(); 
+                    this.filtroTemporal.campoId = campo.id;
+                    this.filtroTemporal.campoLabel = campo.label;
+                    this.filtroTemporal.tipoCampo = campo.tipo;
+                    
+                    const ops = this.operadoresFiltrados;
+                    if(ops.length > 0) {
+                        this.filtroTemporal.operadorId = ops[0].id;
+                        this.filtroTemporal.operadorLabel = ops[0].label;
+                    }
+                },
+
+                aplicarFiltroTemporal() {
+                    if (!this.filtroTemporal.campoId || !this.filtroTemporal.operadorId || !this.filtroTemporal.valor) {
+                        alert("Por favor completa todos los campos del filtro.");
+                        return;
+                    }
+
+                    const nuevoFiltro = {
+                        id: Date.now(),
+                        campoLabel: this.filtroTemporal.campoLabel,
+                        operadorLabel: this.filtroTemporal.operadorLabel,
+                        valorVisual: this.filtroTemporal.tipoCampo === 'numero' ? this.filtroTemporal.valor : this.filtroTemporal.valor
+                    };
+
+                    this.filtrosActivos.push(nuevoFiltro);
+                    this.cerrarConstructorFiltros();
+                    this.actualizarTabla(); 
+                }
+            };
+        }
+    </script>
+</body>
+</html>
