@@ -71,17 +71,17 @@
         }
     ],
     "proveedores_list": [
-        "Embotelladora Nacional",
-        "Distribuidora XYZ",
-        "Limpieza Total S.A.",
-        "Abarrotes del Sur",
-        "Lácteos La Vaca"
+        { "id": 1, "nombre": "Embotelladora Nacional", "nit": "1029384756", "representante": "Juan Pérez", "telefono": "76543210" },
+        { "id": 2, "nombre": "Distribuidora XYZ", "nit": "4567891230", "representante": "María Gómez", "telefono": "65432109" },
+        { "id": 3, "nombre": "Limpieza Total S.A.", "nit": "9876543210", "representante": "Carlos Roca", "telefono": "71234567" },
+        { "id": 4, "nombre": "Abarrotes del Sur", "nit": "1122334455", "representante": "Ana Silva", "telefono": "60123456" },
+        { "id": 5, "nombre": "Lácteos La Vaca", "nit": "5566778899", "representante": "Luis Vargas", "telefono": "78901234" }
     ],
     "departamentos_list": [
-        "Bebidas",
-        "Librería",
-        "Limpieza",
-        "Abarrotes",
-        "Lácteos"
+        { "id": 1, "nombre": "Bebidas", "abierto": false, "subdepartamentos": [ { "id": 11, "nombre": "Gaseosas" }, { "id": 12, "nombre": "Jugos" }, { "id": 13, "nombre": "Agua" } ] },
+        { "id": 2, "nombre": "Librería", "abierto": false, "subdepartamentos": [ { "id": 21, "nombre": "Papeles" }, { "id": 22, "nombre": "Útiles de Escritorio" }, { "id": 23, "nombre": "Cuadernos" } ] },
+        { "id": 3, "nombre": "Limpieza", "abierto": false, "subdepartamentos": [ { "id": 31, "nombre": "Ropa" }, { "id": 32, "nombre": "Hogar" }, { "id": 33, "nombre": "Cuidado Personal" } ] },
+        { "id": 4, "nombre": "Abarrotes", "abierto": false, "subdepartamentos": [ { "id": 41, "nombre": "Arroz y Fideos" }, { "id": 42, "nombre": "Enlatados" }, { "id": 43, "nombre": "Salsas" } ] },
+        { "id": 5, "nombre": "Lácteos", "abierto": false, "subdepartamentos": [ { "id": 51, "nombre": "Yogures" }, { "id": 52, "nombre": "Quesos" }, { "id": 53, "nombre": "Leche" } ] }
     ]
 }
