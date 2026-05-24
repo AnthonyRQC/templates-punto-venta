@@ -67,7 +67,7 @@
             
             <header hx-get="navbar.html" hx-trigger="load" hx-swap="outerHTML"></header>
 
-            <div class="p-6 md:p-8 flex-1" x-data="gestionInventario()">
+            <div class="p-6 md:p-8 flex-1" x-data="gestionInventario()" x-init="initData()">
                 
                 <div class="flex justify-between items-end mb-6">
                     <div>
@@ -198,142 +198,351 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="table w-full">
+                        <table class="table table-xs w-full">
                             <thead class="bg-gray-50/50 dark:bg-slate-900/50 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-100 dark:border-slate-700">
                                 <tr>
-                                    <th class="w-12 px-6 py-4"><label><input type="checkbox" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></th>
-                                    <th class="py-4">Código</th>
-                                    <th class="py-4 w-1/4">Producto</th>
-                                    <th class="py-4">Proveedor</th>
-                                    <th class="py-4 text-center">Tipo Precio</th>
-                                    <th class="py-4 text-right">Precio Venta</th>
-                                    <th class="py-4 text-center">Existencia</th>
-                                    <th class="py-4 w-12 text-center"></th>
+                                    <th class="w-10 px-4 py-3"><label><input type="checkbox" class="checkbox checkbox-xs border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></th>
+                                    <th class="py-3">Código</th>
+                                    <th class="py-3">Descripción del Producto</th>
+                                    <th class="py-3">Departamento</th>
+                                    <th class="py-3 text-right">Costo</th>
+                                    <th class="py-3 text-right">P. Venta</th>
+                                    <th class="py-3 text-right">P. Mayoreo</th>
+                                    <th class="py-3 text-center">Existencia</th>
+                                    <th class="py-3 text-center">Inv. Mínimo</th>
+                                    <th class="py-3 text-center">Inv. Máximo</th>
+                                    <th class="py-3 text-center">Tipo Venta</th>
+                                    <th class="py-3">Proveedor</th>
                                 </tr>
                             </thead>
                             
-                            <tbody class="text-gray-700 dark:text-gray-300 text-sm">
-                                <!-- Producto 1 (Ejemplo con imagen y promo) -->
-                                <tr class="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-50 dark:border-slate-700/50 group">
-                                    <td class="px-6"><label><input type="checkbox" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></td>
-                                    <td class="font-mono text-xs text-gray-500 dark:text-gray-400">BEB-042</td>
-                                    <td>
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 bg-white dark:bg-slate-700 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-slate-600">
-                                                <img src="https://img.freepik.com/vector-gratis/diseno-etiqueta-bebida-refrescante_23-2149429188.jpg" class="object-cover w-full h-full mix-blend-multiply dark:mix-blend-normal">
-                                            </div>
-                                            <div>
-                                                <div class="font-bold text-gray-900 dark:text-white line-clamp-1">Refresco Cola 2L</div>
-                                                <div class="text-[11px] text-gray-500 dark:text-gray-400">Bebidas > Gaseosas</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="font-medium">Embotelladora Nacional</div>
-                                        <div class="text-[10px] text-gray-400">Costo: Bs. 8.50</div>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge badge-warning text-xs font-bold border-none px-2 py-0.5 rounded-md">Promoción</span>
-                                    </td>
-                                    <td class="text-right">
-                                        <div class="font-bold text-brand-600 dark:text-brand-400">Bs. 11.00</div>
-                                        <div class="text-[10px] text-gray-400 line-through">Bs. 13.00</div>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="font-bold text-gray-900 dark:text-white">45</span>
-                                    </td>
-                                    <td class="text-center px-4">
-                                        <button class="btn btn-ghost btn-xs btn-circle text-gray-400 hover:text-brand-600 dark:hover:text-brand-400">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Producto 2 (Ejemplo mayorista y bajo stock) -->
-                                <tr class="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-50 dark:border-slate-700/50 group">
-                                    <td class="px-6"><label><input type="checkbox" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></td>
-                                    <td class="font-mono text-xs text-gray-500 dark:text-gray-400">PAP-001</td>
-                                    <td>
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 bg-gray-100 dark:bg-slate-700 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold text-gray-900 dark:text-white line-clamp-1">Resma Papel Bond A4 75g</div>
-                                                <div class="text-[11px] text-gray-500 dark:text-gray-400">Librería > Papeles</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="font-medium">Distribuidora XYZ</div>
-                                        <div class="text-[10px] text-gray-400">Costo: Bs. 32.50</div>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 text-xs font-bold border-none px-2 py-0.5 rounded-md">Mayorista</span>
-                                    </td>
-                                    <td class="text-right">
-                                        <div class="font-bold text-gray-900 dark:text-white">Bs. 40.00</div>
-                                        <div class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">Mayor: Bs. 36.00 (+5u)</div>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge badge-error text-white font-bold text-xs px-2 rounded-md">5</span>
-                                    </td>
-                                    <td class="text-center px-4">
-                                        <button class="btn btn-ghost btn-xs btn-circle text-gray-400 hover:text-brand-600 dark:hover:text-brand-400">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                        </button>
-                                    </td>
-                                </tr>
-                                
-                                <!-- Producto 3 (Normal) -->
-                                <tr class="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-50 dark:border-slate-700/50 group">
-                                    <td class="px-6"><label><input type="checkbox" class="checkbox checkbox-sm border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></td>
-                                    <td class="font-mono text-xs text-gray-500 dark:text-gray-400">LIM-110</td>
-                                    <td>
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 bg-gray-100 dark:bg-slate-700 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                            </div>
-                                            <div>
-                                                <div class="font-bold text-gray-900 dark:text-white line-clamp-1">Detergente en Polvo 1Kg</div>
-                                                <div class="text-[11px] text-gray-500 dark:text-gray-400">Limpieza > Ropa</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="font-medium">Limpieza Total S.A.</div>
-                                        <div class="text-[10px] text-gray-400">Costo: Bs. 18.20</div>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400 text-xs font-bold border-none px-2 py-0.5 rounded-md">Normal</span>
-                                    </td>
-                                    <td class="text-right">
-                                        <div class="font-bold text-gray-900 dark:text-white">Bs. 22.00</div>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="font-bold text-gray-900 dark:text-white">120</span>
-                                    </td>
-                                    <td class="text-center px-4">
-                                        <button class="btn btn-ghost btn-xs btn-circle text-gray-400 hover:text-brand-600 dark:hover:text-brand-400">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                        </button>
-                                    </td>
-                                </tr>
+                            <tbody class="text-gray-700 dark:text-gray-300 text-xs">
+                                <template x-for="prod in productos" :key="prod.id">
+                                    <tr class="hover:bg-brand-50/50 dark:hover:bg-brand-900/20 transition-colors border-b border-gray-50 dark:border-slate-700/50 group cursor-pointer" @click="abrirModalDetalle(prod)">
+                                        <td class="px-4 py-2" @click.stop><label><input type="checkbox" class="checkbox checkbox-xs border-gray-300 dark:border-gray-600 checked:bg-brand-600 checked:border-brand-600 rounded" /></label></td>
+                                        <td class="py-2 text-gray-500 dark:text-gray-400 font-mono" x-text="prod.codigo"></td>
+                                        <td class="py-2 font-medium text-gray-900 dark:text-white" x-text="prod.nombre"></td>
+                                        <td class="py-2 text-gray-500 dark:text-gray-400" x-text="prod.departamento"></td>
+                                        <td class="py-2 text-right" x-text="'Bs ' + prod.precio_compra.toFixed(2)"></td>
+                                        <td class="py-2 text-right font-medium" :class="prod.tipo_precio === 'promo' ? 'text-brand-600 dark:text-brand-400' : ''" x-text="'Bs ' + prod.precio_venta.toFixed(2)"></td>
+                                        <td class="py-2 text-right text-gray-500" x-text="'Bs ' + prod.precio_mayorista.toFixed(2)"></td>
+                                        <td class="py-2 text-center" :class="prod.existencia <= prod.stock_minimo ? 'text-red-500 font-bold' : ''" x-text="prod.existencia"></td>
+                                        <td class="py-2 text-center text-gray-500" x-text="prod.stock_minimo || '-'"></td>
+                                        <td class="py-2 text-center text-gray-500" x-text="prod.stock_maximo || '-'"></td>
+                                        <td class="py-2 text-center text-gray-500" x-text="prod.tipo_venta || 'UNIDAD'"></td>
+                                        <td class="py-2 text-gray-500 truncate max-w-[120px]" x-text="prod.proveedor"></td>
+                                    </tr>
+                                </template>
                             </tbody>
                         </table>
                     </div>
 
                     <div class="px-6 py-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                        <div>Mostrando 3 de 452 productos</div>
+                        <div>Mostrando <span x-text="productos.length"></span> de <span x-text="productos.length"></span> productos</div>
                         <div class="flex gap-1">
                             <button class="btn btn-sm btn-ghost btn-square"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
                             <button class="btn btn-sm btn-ghost btn-square bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">1</button>
-                            <button class="btn btn-sm btn-ghost btn-square">2</button>
-                            <button class="btn btn-sm btn-ghost btn-square">3</button>
                             <button class="btn btn-sm btn-ghost btn-square"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
                         </div>
                     </div>
                 </div>
+
+                <!-- MODAL DE DETALLE Y EDICIÓN -->
+                <dialog id="modal_detalle_producto" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarModalDetalle()">
+                    <div class="modal-box bg-white dark:bg-slate-900 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 max-w-5xl w-full h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+                        
+                        <div class="bg-brand-600 dark:bg-brand-700 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                <h3 class="font-bold text-xl tracking-wide uppercase">Detalles del Producto</h3>
+                            </div>
+                            <button @click="cerrarModalDetalle()" class="btn btn-sm btn-circle btn-ghost text-white hover:bg-white/20 border-none">✕</button>
+                        </div>
+                        
+                        <div class="flex-1 flex overflow-hidden">
+                            <!-- PANEL IZQUIERDO: Información del Producto -->
+                            <div class="w-1/2 flex flex-col border-r border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 p-6 overflow-y-auto">
+                                <template x-if="productoSeleccionado">
+                                    <div>
+                                        <!-- Cabecera Izquierda -->
+                                        <div class="flex items-start gap-4 mb-6">
+                                            <div class="w-20 h-20 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-sm relative group">
+                                                <template x-if="productoSeleccionado.imagen">
+                                                    <img :src="productoSeleccionado.imagen" class="object-cover w-full h-full">
+                                                </template>
+                                                <template x-if="!productoSeleccionado.imagen">
+                                                    <svg class="w-8 h-8 text-gray-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                </template>
+                                                <div @click="iniciarEdicion('imagen', productoSeleccionado.imagen, 'URL de la Imagen')" class="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center cursor-pointer transition-opacity">
+                                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                </div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="flex justify-between items-start group">
+                                                    <div class="flex-1 flex flex-col items-start gap-1">
+                                                        <div class="flex items-center gap-2 group/codigo">
+                                                            <span class="text-xs font-mono text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-slate-700 px-2 py-0.5 rounded cursor-pointer" title="Haz clic en el lápiz para editar el código" x-text="productoSeleccionado.codigo"></span>
+                                                            <button @click="iniciarEdicion('codigo', productoSeleccionado.codigo, 'Código de Barras / SKU')" class="btn btn-xs btn-circle btn-ghost h-5 w-5 min-h-0 text-gray-400 hover:text-brand-600 opacity-0 group-hover/codigo:opacity-100 transition-opacity">
+                                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                            </button>
+                                                        </div>
+                                                        <h4 class="font-bold text-lg text-gray-900 dark:text-white leading-tight" x-text="productoSeleccionado.nombre"></h4>
+                                                    </div>
+                                                    <button @click="iniciarEdicion('nombre', productoSeleccionado.nombre, 'Nombre del Producto')" class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-brand-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                    </button>
+                                                </div>
+                                                <div class="flex items-center justify-between mt-2 group">
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400"><span x-text="productoSeleccionado.departamento"></span> > <span x-text="productoSeleccionado.subdepartamento"></span></p>
+                                                    <button @click="iniciarEdicion('departamento', productoSeleccionado.departamento, 'Departamento')" class="btn btn-xs btn-circle btn-ghost text-gray-400 hover:text-brand-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Lista de Propiedades -->
+                                        <div class="space-y-4">
+                                            <!-- Costo Unitario -->
+                                            <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl relative group transition-colors hover:border-slate-300">
+                                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Costo Unitario</span>
+                                                <span class="font-black text-slate-700 dark:text-slate-300 text-lg" x-text="'Bs. ' + productoSeleccionado.precio_compra.toFixed(2)"></span>
+                                                <button @click="iniciarEdicion('precio_compra', productoSeleccionado.precio_compra, 'Costo de Compra')" class="absolute top-1/2 -translate-y-1/2 right-2 btn btn-sm btn-circle btn-ghost text-slate-500 bg-white/80 hover:bg-white shadow-sm dark:text-slate-400 dark:bg-slate-700/80 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                </button>
+                                            </div>
+
+                                            <!-- Precio Normal -->
+                                            <div class="flex justify-between items-center p-3 bg-brand-50/50 dark:bg-brand-900/10 border border-brand-200 dark:border-brand-800/50 rounded-xl relative group transition-colors hover:border-brand-300">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-xs font-bold text-brand-700 dark:text-brand-400 uppercase">Precio Normal</span>
+                                                    <span x-show="productoSeleccionado.tipo_precio === 'normal'" class="badge badge-sm bg-brand-500 text-white border-none font-bold shadow-sm">Activo</span>
+                                                </div>
+                                                <span class="font-black text-brand-800 dark:text-brand-300 text-lg" x-text="'Bs. ' + productoSeleccionado.precio_venta.toFixed(2)"></span>
+                                                <button @click="iniciarEdicion('precio_venta', productoSeleccionado.precio_venta, 'Precio Normal de Venta')" class="absolute top-1/2 -translate-y-1/2 right-2 btn btn-sm btn-circle btn-ghost text-brand-600 bg-white/80 hover:bg-white shadow-sm dark:text-brand-400 dark:bg-slate-800/80 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                </button>
+                                            </div>
+
+                                            <!-- Precio Mayorista -->
+                                            <div class="flex justify-between items-center p-3 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800/50 rounded-xl relative group transition-colors hover:border-indigo-300">
+                                                <div class="flex flex-col">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase">Precio Mayorista</span>
+                                                        <span x-show="productoSeleccionado.tipo_precio === 'mayor'" class="badge badge-sm bg-indigo-500 text-white border-none font-bold shadow-sm">Activo</span>
+                                                    </div>
+                                                    <span class="text-xs text-indigo-500 font-medium mt-0.5" x-text="'A partir de ' + productoSeleccionado.min_mayorista + ' u.'"></span>
+                                                </div>
+                                                <span class="font-black text-indigo-800 dark:text-indigo-300 text-lg" x-text="'Bs. ' + productoSeleccionado.precio_mayorista.toFixed(2)"></span>
+                                                <button @click="iniciarEdicion('precio_mayorista_config', productoSeleccionado.precio_mayorista, 'Configurar Precio Mayorista')" class="absolute top-1/2 -translate-y-1/2 right-2 btn btn-sm btn-circle btn-ghost text-indigo-600 bg-white/80 hover:bg-white shadow-sm dark:text-indigo-400 dark:bg-slate-800/80 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                </button>
+                                            </div>
+
+                                            <!-- Precio Promoción -->
+                                            <div class="flex justify-between items-center p-3 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-xl relative group transition-colors hover:border-amber-300">
+                                                <div class="flex flex-col">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase">Promoción</span>
+                                                        <span x-show="productoSeleccionado.tipo_precio === 'promo'" class="badge badge-sm bg-amber-500 text-white border-none font-bold shadow-sm">Activo</span>
+                                                    </div>
+                                                    <span class="text-xs text-amber-600 font-medium mt-0.5" x-show="productoSeleccionado.texto_promo" x-text="productoSeleccionado.texto_promo"></span>
+                                                    <span x-show="productoSeleccionado.fecha_inicio_promo && productoSeleccionado.fecha_fin_promo" class="text-[10px] text-amber-600/70 mt-0.5">
+                                                        Del <span x-text="productoSeleccionado.fecha_inicio_promo"></span> al <span x-text="productoSeleccionado.fecha_fin_promo"></span>
+                                                    </span>
+                                                </div>
+                                                <span class="font-black text-amber-800 dark:text-amber-300 text-lg" x-text="'Bs. ' + productoSeleccionado.precio_promo.toFixed(2)"></span>
+                                                <button @click="iniciarEdicion('precio_promo_config', productoSeleccionado.precio_promo, 'Configurar Promoción')" class="absolute top-1/2 -translate-y-1/2 right-2 btn btn-sm btn-circle btn-ghost text-amber-600 bg-white/80 hover:bg-white shadow-sm dark:text-amber-400 dark:bg-slate-800/80 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                </button>
+                                            </div>
+
+                                            <!-- Proveedor -->
+                                            <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl group transition-colors hover:border-brand-200 dark:hover:border-brand-800">
+                                                <div>
+                                                    <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">Proveedor</p>
+                                                    <p class="font-medium text-gray-800 dark:text-gray-200 mt-0.5" x-text="productoSeleccionado.proveedor"></p>
+                                                    <p class="text-[10px] text-gray-400 mt-0.5">NIT: <span x-text="productoSeleccionado.nit_proveedor"></span></p>
+                                                </div>
+                                                <button @click="iniciarEdicion('proveedor', productoSeleccionado.proveedor, 'Proveedor')" class="btn btn-sm btn-circle btn-ghost text-brand-600 bg-brand-50 hover:bg-brand-100 dark:text-brand-400 dark:bg-brand-900/30 dark:hover:bg-brand-900/50 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <!-- Stock -->
+                                                <div class="flex flex-col justify-center p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl group transition-colors hover:border-brand-200 dark:hover:border-brand-800 relative">
+                                                    <p class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">Stock</p>
+                                                    <div class="flex items-center gap-2 mt-0.5">
+                                                        <p class="font-bold text-gray-800 dark:text-gray-200" x-text="productoSeleccionado.existencia + ' u.'"></p>
+                                                        <span x-show="productoSeleccionado.existencia <= productoSeleccionado.stock_minimo" class="w-2 h-2 rounded-full bg-red-500" title="Bajo stock"></span>
+                                                    </div>
+                                                    <button @click="iniciarEdicion('existencia', productoSeleccionado.existencia, 'Ajuste de Existencia')" class="absolute top-2 right-2 btn btn-xs btn-circle btn-ghost h-6 w-6 min-h-0 text-brand-600 bg-brand-50 hover:bg-brand-100 dark:text-brand-400 dark:bg-brand-900/30 opacity-0 group-hover:opacity-100 transition-all">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                    </button>
+                                                </div>
+                                                <!-- Presentación -->
+                                                <div class="flex flex-col justify-center p-3 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl group transition-colors hover:border-brand-200 dark:hover:border-brand-800 relative">
+                                                    <p class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase">Formato</p>
+                                                    <p class="font-medium text-gray-800 dark:text-gray-200 mt-0.5 truncate" x-text="productoSeleccionado.presentacion || 'N/A'"></p>
+                                                    <button @click="iniciarEdicion('presentacion', productoSeleccionado.presentacion, 'Presentación')" class="absolute top-2 right-2 btn btn-xs btn-circle btn-ghost h-6 w-6 min-h-0 text-brand-600 bg-brand-50 hover:bg-brand-100 dark:text-brand-400 dark:bg-brand-900/30 opacity-0 group-hover:opacity-100 transition-all">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <!-- PANEL DERECHO: Formulario de Edición Dinámico -->
+                            <div class="w-1/2 flex flex-col relative bg-white dark:bg-slate-900">
+                                
+                                <!-- Estado Inactivo (Ningún campo seleccionado) -->
+                                <div x-show="!modoEdicion" class="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 p-8 text-center" x-transition.opacity>
+                                    <div class="w-24 h-24 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 border border-gray-100 dark:border-slate-700">
+                                        <svg class="w-10 h-10 text-gray-300 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">Modo Edición</h3>
+                                    <p class="text-gray-500 text-sm max-w-sm">Haz clic en el ícono de lápiz de cualquier propiedad en el panel izquierdo para editar su valor aquí.</p>
+                                </div>
+
+                                <!-- Estado Activo (Formulario dinámico) -->
+                                <div x-show="modoEdicion" class="flex flex-col h-full" x-cloak x-transition.opacity>
+                                    <div class="p-6 border-b border-gray-100 dark:border-slate-700 bg-brand-50/50 dark:bg-slate-800/50">
+                                        <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                            Editando: <span class="text-brand-700 dark:text-brand-400" x-text="tituloEdicion"></span>
+                                        </h3>
+                                    </div>
+                                    
+                                    <div class="flex-1 p-6 overflow-y-auto" x-init="if(typeof autoAnimate !== 'undefined') autoAnimate($el)">
+                                        
+                                        <!-- Inputs Genéricos de Texto/Número -->
+                                        <template x-if="modoEdicion === 'codigo' || modoEdicion === 'nombre' || modoEdicion === 'presentacion' || modoEdicion === 'imagen'">
+                                            <div class="form-control w-full">
+                                                <label class="label text-sm font-semibold text-gray-700 dark:text-gray-300" x-text="tituloEdicion"></label>
+                                                <input type="text" x-model="valorEdicionTemporal" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-brand-500 flex-1 rounded-xl" />
+                                            </div>
+                                        </template>
+
+                                        <template x-if="modoEdicion === 'precio_compra' || modoEdicion === 'existencia'">
+                                            <div class="form-control w-full">
+                                                <label class="label text-sm font-semibold text-gray-700 dark:text-gray-300" x-text="tituloEdicion"></label>
+                                                <div class="relative">
+                                                    <span x-show="modoEdicion !== 'existencia'" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">Bs.</span>
+                                                    <input type="number" step="0.10" x-model.number="valorEdicionTemporal" :class="modoEdicion !== 'existencia' ? 'pl-10' : ''" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-brand-500 w-full rounded-xl font-bold" />
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <!-- Select de Proveedor -->
+                                        <template x-if="modoEdicion === 'proveedor'">
+                                            <div class="form-control w-full">
+                                                <label class="label text-sm font-semibold text-gray-700 dark:text-gray-300">Seleccione un Proveedor</label>
+                                                <select x-model="valorEdicionTemporal" class="select border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-brand-500 w-full rounded-xl">
+                                                    <template x-for="prov in proveedores_list">
+                                                        <option :value="prov" x-text="prov"></option>
+                                                    </template>
+                                                </select>
+                                                <label class="label mt-2">
+                                                    <span class="label-text-alt text-gray-500">¿El proveedor no está en la lista? <a href="#" class="text-brand-600 hover:underline">Gestionar Proveedores</a></span>
+                                                </label>
+                                            </div>
+                                        </template>
+
+                                        <!-- Form Precio Normal -->
+                                        <template x-if="modoEdicion === 'precio_venta'">
+                                            <div class="space-y-4">
+                                                <div class="form-control w-full">
+                                                    <label class="label text-sm font-semibold text-gray-700 dark:text-gray-300">Precio Normal de Venta</label>
+                                                    <div class="relative">
+                                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">Bs.</span>
+                                                        <input type="number" step="0.10" x-model.number="valorEdicionTemporal" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-brand-500 w-full rounded-xl font-bold pl-10" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-control bg-brand-50/50 dark:bg-brand-900/10 p-4 rounded-xl border border-brand-100 dark:border-brand-800/50">
+                                                    <label class="label cursor-pointer justify-start gap-3 p-0">
+                                                        <input type="checkbox" x-model="marcarComoActivo" class="checkbox checkbox-success border-brand-500" />
+                                                        <span class="label-text font-bold text-brand-700 dark:text-brand-300">Activar como precio por defecto</span>
+                                                    </label>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400 ml-9 mt-1">Los clientes verán este precio al registrar el producto.</p>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <!-- Form Precio Mayorista -->
+                                        <template x-if="modoEdicion === 'precio_mayorista_config'">
+                                            <div class="space-y-4">
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <div class="form-control">
+                                                        <label class="label text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase">Precio x Mayor (Bs.)</label>
+                                                        <input type="number" step="0.1" x-model.number="formPrecioAvanzado.precio_mayorista" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-indigo-500 w-full rounded-xl font-bold">
+                                                    </div>
+                                                    <div class="form-control">
+                                                        <label class="label text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase">A partir de (Uds)</label>
+                                                        <input type="number" min="2" x-model.number="formPrecioAvanzado.min_mayorista" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-indigo-500 w-full rounded-xl font-bold">
+                                                    </div>
+                                                </div>
+                                                <div class="form-control bg-indigo-50/50 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/50">
+                                                    <label class="label cursor-pointer justify-start gap-3 p-0">
+                                                        <input type="checkbox" x-model="marcarComoActivo" class="checkbox checkbox-primary border-indigo-500" />
+                                                        <span class="label-text font-bold text-indigo-700 dark:text-indigo-300">Activar estrategia por volumen</span>
+                                                    </label>
+                                                    <p class="text-xs text-indigo-600/80 dark:text-indigo-400/80 ml-9 mt-1">El sistema aplicará el descuento automáticamente si llevan la cantidad mínima o más.</p>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <!-- Form Precio Promo -->
+                                        <template x-if="modoEdicion === 'precio_promo_config'">
+                                            <div class="space-y-4">
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <div class="form-control">
+                                                        <label class="label text-xs font-bold text-amber-700 dark:text-amber-400 uppercase">Precio Promocional (Bs.)</label>
+                                                        <input type="number" step="0.1" x-model.number="formPrecioAvanzado.precio_promo" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-amber-500 w-full rounded-xl font-bold">
+                                                    </div>
+                                                    <div class="form-control">
+                                                        <label class="label text-xs font-bold text-amber-700 dark:text-amber-400 uppercase">Motivo / Nombre</label>
+                                                        <input type="text" x-model="formPrecioAvanzado.texto_promo" placeholder="Ej. Black Friday" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-amber-500 w-full rounded-xl">
+                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <div class="form-control">
+                                                        <label class="label text-xs font-bold text-amber-700 dark:text-amber-400 uppercase">Válido Desde</label>
+                                                        <input type="date" x-model="formPrecioAvanzado.fecha_inicio_promo" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-amber-500 w-full rounded-xl text-sm text-gray-700 dark:text-gray-300">
+                                                    </div>
+                                                    <div class="form-control">
+                                                        <label class="label text-xs font-bold text-amber-700 dark:text-amber-400 uppercase">Válido Hasta</label>
+                                                        <input type="date" x-model="formPrecioAvanzado.fecha_fin_promo" class="input border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:border-amber-500 w-full rounded-xl text-sm text-gray-700 dark:text-gray-300">
+                                                    </div>
+                                                </div>
+                                                <div class="form-control bg-amber-50/50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-800/50">
+                                                    <label class="label cursor-pointer justify-start gap-3 p-0">
+                                                        <input type="checkbox" x-model="marcarComoActivo" class="checkbox checkbox-warning border-amber-500" />
+                                                        <span class="label-text font-bold text-amber-700 dark:text-amber-300">Activar promoción ahora</span>
+                                                    </label>
+                                                    <p class="text-xs text-amber-600/80 dark:text-amber-400/80 ml-9 mt-1">Sustituye el precio normal por el promocional de forma temporal.</p>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                    </div>
+
+                                    <!-- Footer Botones Guardar/Cancelar -->
+                                    <div class="bg-gray-50 dark:bg-slate-800/80 p-5 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-3 shrink-0">
+                                        <button @click="cancelarEdicion()" class="btn btn-ghost text-gray-500 rounded-xl px-6">Cancelar</button>
+                                        <button @click="guardarEdicion()" class="btn bg-brand-600 hover:bg-brand-700 text-white border-none rounded-xl shadow-lg shadow-brand-500/30 px-8">Guardar Cambios</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarModalDetalle()">cerrar</button>
+                    </form>
+                </dialog>
 
             </div>
         </main>
@@ -344,6 +553,19 @@
             return {
                 cargandoTabla: false, 
                 constructorFiltroAbierto: false,
+                
+                // DATOS MAESTROS (Cargados desde JSON)
+                productos: [],
+                proveedores_list: [],
+                departamentos_list: [],
+
+                // ESTADO DEL MODAL
+                productoSeleccionado: null,
+                modoEdicion: null, 
+                tituloEdicion: '',
+                valorEdicionTemporal: null,
+                marcarComoActivo: false,
+                formPrecioAvanzado: { precio_mayorista: 0, min_mayorista: 0, precio_promo: 0, texto_promo: '', fecha_inicio_promo: '', fecha_fin_promo: '' },
                 
                 camposDisponibles: [
                     { id: 'proveedor', label: 'Proveedor', tipo: 'texto' },
@@ -358,69 +580,143 @@
                     fecha: [ { id: 'aft', label: 'es después de' }, { id: 'bef', label: 'es antes de' } ]
                 },
 
-                filtrosActivos: [
-                    { id: 1, campoLabel: 'Departamento', operadorLabel: 'es', valorVisual: 'Bebidas' },
-                    { id: 2, campoLabel: 'Existencia', operadorLabel: 'es menor que', valorVisual: '10' }
-                ],
+                filtrosActivos: [],
+                filtroTemporal: { campoId: null, campoLabel: '', tipoCampo: '', operadorId: null, operadorLabel: '', valor: '' },
 
-                filtroTemporal: {
-                    campoId: null, campoLabel: '', tipoCampo: '', operadorId: null, operadorLabel: '', valor: ''
+                async initData() {
+                    this.cargandoTabla = true;
+                    try {
+                        const response = await fetch('mock_productos_admin.json');
+                        const data = await response.json();
+                        this.productos = data.productos;
+                        this.proveedores_list = data.proveedores_list;
+                        this.departamentos_list = data.departamentos_list;
+                    } catch (error) {
+                        console.error('Error cargando datos:', error);
+                    } finally {
+                        this.cargandoTabla = false;
+                    }
                 },
 
+                // --- LOGICA DEL MODAL DE DETALLES ---
+                abrirModalDetalle(prod) {
+                    this.productoSeleccionado = JSON.parse(JSON.stringify(prod)); // Clonar para no mutar lista si cancela
+                    this.modoEdicion = null;
+                    document.getElementById('modal_detalle_producto').showModal();
+                },
+
+                cerrarModalDetalle() {
+                    document.getElementById('modal_detalle_producto').close();
+                    this.productoSeleccionado = null;
+                    this.modoEdicion = null;
+                },
+
+                iniciarEdicion(campo, valorActual, titulo) {
+                    this.modoEdicion = campo;
+                    this.tituloEdicion = titulo;
+                    this.marcarComoActivo = false;
+                    
+                    if (campo === 'precio_mayorista_config') {
+                        this.marcarComoActivo = (this.productoSeleccionado.tipo_precio === 'mayor');
+                        this.formPrecioAvanzado.precio_mayorista = this.productoSeleccionado.precio_mayorista;
+                        this.formPrecioAvanzado.min_mayorista = this.productoSeleccionado.min_mayorista;
+                    } else if (campo === 'precio_promo_config') {
+                        const hoy = new Date().toISOString().split('T')[0];
+                        this.marcarComoActivo = (this.productoSeleccionado.tipo_precio === 'promo');
+                        this.formPrecioAvanzado.precio_promo = this.productoSeleccionado.precio_promo;
+                        this.formPrecioAvanzado.texto_promo = this.productoSeleccionado.texto_promo;
+                        this.formPrecioAvanzado.fecha_inicio_promo = this.productoSeleccionado.fecha_inicio_promo || hoy;
+                        this.formPrecioAvanzado.fecha_fin_promo = this.productoSeleccionado.fecha_fin_promo || hoy;
+                    } else if (campo === 'precio_venta') {
+                        this.marcarComoActivo = (this.productoSeleccionado.tipo_precio === 'normal');
+                        this.valorEdicionTemporal = valorActual;
+                    } else {
+                        this.valorEdicionTemporal = valorActual;
+                    }
+                },
+
+                cancelarEdicion() {
+                    this.modoEdicion = null;
+                },
+
+                guardarEdicion() {
+                    // En un escenario real, aquí se hace fetch(POST/PUT) al backend.
+                    // Para el prototipo, actualizamos el estado local (productoSeleccionado)
+                    
+                    if (this.modoEdicion === 'precio_mayorista_config') {
+                        this.productoSeleccionado.precio_mayorista = this.formPrecioAvanzado.precio_mayorista;
+                        this.productoSeleccionado.min_mayorista = this.formPrecioAvanzado.min_mayorista;
+                        if (this.marcarComoActivo) this.productoSeleccionado.tipo_precio = 'mayor';
+                        else if (this.productoSeleccionado.tipo_precio === 'mayor') this.productoSeleccionado.tipo_precio = 'normal';
+                    } else if (this.modoEdicion === 'precio_promo_config') {
+                        this.productoSeleccionado.precio_promo = this.formPrecioAvanzado.precio_promo;
+                        this.productoSeleccionado.texto_promo = this.formPrecioAvanzado.texto_promo;
+                        this.productoSeleccionado.fecha_inicio_promo = this.formPrecioAvanzado.fecha_inicio_promo;
+                        this.productoSeleccionado.fecha_fin_promo = this.formPrecioAvanzado.fecha_fin_promo;
+                        if (this.marcarComoActivo) this.productoSeleccionado.tipo_precio = 'promo';
+                        else if (this.productoSeleccionado.tipo_precio === 'promo') this.productoSeleccionado.tipo_precio = 'normal';
+                    } else if (this.modoEdicion === 'precio_venta') {
+                        this.productoSeleccionado.precio_venta = this.valorEdicionTemporal;
+                        if (this.marcarComoActivo) this.productoSeleccionado.tipo_precio = 'normal';
+                    } else {
+                        this.productoSeleccionado[this.modoEdicion] = this.valorEdicionTemporal;
+                    }
+
+                    // Actualizar también en la lista principal para que la tabla se refresque
+                    const index = this.productos.findIndex(p => p.id === this.productoSeleccionado.id);
+                    if (index !== -1) {
+                        this.productos[index] = JSON.parse(JSON.stringify(this.productoSeleccionado));
+                    }
+
+                    // Volver al modo lectura
+                    this.modoEdicion = null;
+                },
+
+                // --- LOGICA DE FILTROS (Mantenida) ---
                 get operadoresFiltrados() {
                     if (!this.filtroTemporal.tipoCampo) return [];
                     return this.operadores[this.filtroTemporal.tipoCampo] || [];
                 },
-
                 actualizarTabla() {
                     this.cargandoTabla = true;
-                    setTimeout(() => this.cargandoTabla = false, 600); 
+                    setTimeout(() => this.cargandoTabla = false, 400); 
                 },
-
                 eliminarFiltro(id) {
                     this.filtrosActivos = this.filtrosActivos.filter(f => f.id !== id);
                     this.actualizarTabla(); 
                 },
-
                 abrirConstructorFiltros() {
                     this.constructorFiltroAbierto = true;
                 },
-
                 cerrarConstructorFiltros() {
                     this.constructorFiltroAbierto = false;
                     this.resetFiltroTemporal();
                 },
-
                 resetFiltroTemporal() {
                     this.filtroTemporal = { campoId: null, campoLabel: '', tipoCampo: '', operadorId: null, operadorLabel: '', valor: '' };
                 },
-
                 seleccionarCampo(campo) {
                     this.resetFiltroTemporal(); 
                     this.filtroTemporal.campoId = campo.id;
                     this.filtroTemporal.campoLabel = campo.label;
                     this.filtroTemporal.tipoCampo = campo.tipo;
-                    
                     const ops = this.operadoresFiltrados;
                     if(ops.length > 0) {
                         this.filtroTemporal.operadorId = ops[0].id;
                         this.filtroTemporal.operadorLabel = ops[0].label;
                     }
                 },
-
                 aplicarFiltroTemporal() {
                     if (!this.filtroTemporal.campoId || !this.filtroTemporal.operadorId || !this.filtroTemporal.valor) {
                         alert("Por favor completa todos los campos del filtro.");
                         return;
                     }
-
                     const nuevoFiltro = {
                         id: Date.now(),
                         campoLabel: this.filtroTemporal.campoLabel,
                         operadorLabel: this.filtroTemporal.operadorLabel,
                         valorVisual: this.filtroTemporal.tipoCampo === 'numero' ? this.filtroTemporal.valor : this.filtroTemporal.valor
                     };
-
                     this.filtrosActivos.push(nuevoFiltro);
                     this.cerrarConstructorFiltros();
                     this.actualizarTabla(); 
