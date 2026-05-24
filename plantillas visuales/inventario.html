@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es" x-data="{ isDark: $persist(false), sidebarOpen: $persist(true), activeTab: 'inventario' }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planti Dashboard - Operaciones de Inventario</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <!-- PLUGINS DE ALPINE -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@formkit/auto-animate/index.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f5f9f0', 100: '#ECF4E5', 200: '#d7e8c6', 300: '#bcda9e', 400: '#9bc66e', 500: '#7cb34a',
+                            600: '#6FA83A', 700: '#527E2B', 800: '#426524', 900: '#2F4A19',
+                            light: '#ECF4E5', DEFAULT: '#6FA83A', dark: '#527E2B', leaf: '#2F4A19'     
+                        },
+                        surface: { DEFAULT: '#f8fafc', dark: '#0f172a' }
+                    }
+                }
+            }
+        }
+        
+        document.addEventListener('htmx:load', function(evt) {
+            if (window.Alpine) {
+                Alpine.initTree(evt.detail.elt);
+            }
+        });
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .sidebar-transition { transition: width 0.3s ease, background-color 0.3s ease, border-color 0.3s ease; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-surface dark:bg-surface-dark text-gray-800 dark:text-slate-200 font-sans transition-colors duration-300">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside hx-get="sidebar.html" hx-trigger="load" hx-swap="outerHTML"></aside>
+
+        <main class="flex-1 overflow-y-auto flex flex-col">
+            
+            <header hx-get="navbar.html" hx-trigger="load" hx-swap="outerHTML"></header>
+
+            <div class="p-6 md:p-8 flex-1" x-data="inventarioApp()">
+                
+                <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Operaciones de Inventario</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Consulta el Kardex de productos y realiza ajustes manuales de stock.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="abrirModalAjuste()" class="btn btn-sm bg-brand-600 hover:bg-brand-700 text-white border-none rounded-full px-5 shadow-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Nuevo Ajuste Manual
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: KARDEX DE INVENTARIO -->
+                <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mb-8">
+                    <div class="p-6 border-b border-gray-100 dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="font-bold text-lg text-brand-700 dark:text-brand-400 uppercase tracking-wider flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                Kardex de Producto
+                            </h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ingresa el código del producto para ver su historial de entradas y salidas.</p>
+                        </div>
+
+                        <!-- Filtros del Kardex -->
+                        <div class="flex items-center gap-3 w-full md:w-auto bg-gray-50 dark:bg-slate-900/50 p-2 rounded-2xl border border-gray-100 dark:border-slate-700">
+                            <div class="relative flex-1 md:w-64">
+                                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" placeholder="Código de producto..." x-model="kardexQuery" @keyup.enter="buscarKardex" class="input input-sm w-full pl-9 rounded-xl bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm" />
+                            </div>
+                            <select class="select select-sm select-bordered rounded-xl bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 text-sm w-36">
+                                <option>Últimos 7 días</option>
+                                <option>Este Mes</option>
+                                <option>Mes Anterior</option>
+                                <option>Desde el comienzo</option>
+                            </select>
+                            <button class="btn btn-sm btn-ghost text-brand-600 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 rounded-xl px-4" @click="buscarKardex">
+                                Consultar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Resumen del Producto (Se muestra si hay uno seleccionado) -->
+                    <div x-show="productoSeleccionado" x-cloak class="bg-brand-50/50 dark:bg-slate-900/40 p-4 border-b border-gray-100 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4" x-transition>
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-600 flex items-center justify-center font-bold text-gray-400">IMG</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 dark:text-white" x-text="productoSeleccionado.nombre">Coca Cola 2Lts Retornable</h3>
+                                <p class="text-xs text-gray-500"><span class="font-mono bg-white dark:bg-slate-800 px-1 rounded border border-gray-200 dark:border-slate-700" x-text="productoSeleccionado.codigo">7501055300075</span> - Refrescos</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 text-center">
+                            <div class="bg-white dark:bg-slate-800 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase">Stock Mínimo</p>
+                                <p class="font-medium text-gray-700 dark:text-gray-300">10</p>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase">Existencia Actual</p>
+                                <p class="font-bold text-brand-600 dark:text-brand-400 text-lg leading-tight" x-text="productoSeleccionado.stock">45</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla del Kardex -->
+                    <div class="overflow-x-auto min-h-[300px] relative">
+                        <!-- Estado vacío -->
+                        <div x-show="!productoSeleccionado" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 py-12">
+                            <svg class="w-16 h-16 mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            <p class="text-sm font-medium">Busca un producto para ver su Kardex</p>
+                        </div>
+
+                        <table class="table table-sm w-full" x-show="productoSeleccionado" x-cloak>
+                            <thead class="bg-gray-50/80 dark:bg-slate-900/80 text-gray-500 dark:text-gray-400 font-medium">
+                                <tr>
+                                    <th class="py-3 px-6">Fecha y Hora</th>
+                                    <th class="py-3">Concepto / Movimiento</th>
+                                    <th class="py-3 text-center text-green-600 dark:text-green-400">Entrada (+)</th>
+                                    <th class="py-3 text-center text-red-600 dark:text-red-400">Salida (-)</th>
+                                    <th class="py-3 text-center bg-gray-100 dark:bg-slate-800">Saldo</th>
+                                    <th class="py-3">Cajero / Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700 dark:text-gray-300 text-sm">
+                                <template x-for="(mov, index) in movimientosKardex" :key="index">
+                                    <tr class="hover:bg-brand-50/50 dark:hover:bg-brand-900/20 border-b border-gray-50 dark:border-slate-700/50">
+                                        <td class="py-3 px-6 text-xs text-gray-500" x-text="mov.fecha"></td>
+                                        <td class="py-3 font-medium">
+                                            <div class="flex items-center gap-2">
+                                                <!-- Icono dinámico según el tipo -->
+                                                <span x-show="mov.tipo === 'entrada'" class="w-2 h-2 rounded-full bg-green-500"></span>
+                                                <span x-show="mov.tipo === 'salida'" class="w-2 h-2 rounded-full bg-red-500"></span>
+                                                <span x-show="mov.tipo === 'ajuste'" class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                                <span x-text="mov.concepto"></span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 text-center font-bold text-green-600 dark:text-green-400" x-text="mov.entrada || '-'"></td>
+                                        <td class="py-3 text-center font-bold text-red-600 dark:text-red-400" x-text="mov.salida || '-'"></td>
+                                        <td class="py-3 text-center font-black bg-gray-50/50 dark:bg-slate-800/50" x-text="mov.saldo"></td>
+                                        <td class="py-3 text-xs text-gray-500 truncate" x-text="mov.usuario"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- MODAL DE AJUSTE MANUAL -->
+                <dialog id="modal_ajuste_inventario" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarModalAjuste()">
+                    <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 overflow-hidden shadow-2xl">
+                        
+                        <div class="bg-brand-600 dark:bg-brand-700 text-white px-6 py-4 flex justify-between items-center">
+                            <h3 class="font-bold text-lg flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Nuevo Ajuste de Inventario
+                            </h3>
+                            <button @click="cerrarModalAjuste()" class="btn btn-sm btn-circle btn-ghost hover:bg-white/20">✕</button>
+                        </div>
+                        
+                        <div class="p-6 flex flex-col gap-5">
+                            <div class="alert alert-info bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800/30 rounded-xl p-3 text-xs shadow-sm">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>Utiliza este formulario para registrar mermas, caducidad, productos dañados o ingresos de mercancía sin factura.</span>
+                            </div>
+
+                            <!-- Buscar Producto para Ajuste -->
+                            <div>
+                                <label class="label text-xs font-bold uppercase text-gray-500 pt-0">Producto a ajustar</label>
+                                <div class="relative">
+                                    <input type="text" placeholder="Escribe el código o nombre..." class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 rounded-xl" />
+                                    <svg class="w-4 h-4 text-gray-400 absolute right-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="label text-xs font-bold uppercase text-gray-500">Tipo de Movimiento</label>
+                                    <select class="select select-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl">
+                                        <option disabled selected>Selecciona tipo...</option>
+                                        <optgroup label="Salidas (-)">
+                                            <option value="merma">Merma / Producto Dañado</option>
+                                            <option value="caducidad">Caducidad</option>
+                                            <option value="consumo">Consumo Interno</option>
+                                        </optgroup>
+                                        <optgroup label="Entradas (+)">
+                                            <option value="ingreso_manual">Ingreso Manual (Sin Factura)</option>
+                                            <option value="devolucion">Devolución de Proveedor</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="label text-xs font-bold uppercase text-gray-500">Cantidad</label>
+                                    <input type="number" min="1" placeholder="0" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl text-lg font-bold text-center" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="label text-xs font-bold uppercase text-gray-500">Observaciones (Opcional)</label>
+                                <textarea class="textarea textarea-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl resize-none h-20" placeholder="Añade un detalle sobre por qué se realiza el ajuste..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 dark:bg-slate-900/50 px-6 py-4 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-3">
+                            <button class="btn btn-ghost rounded-xl" @click="cerrarModalAjuste()">Cancelar</button>
+                            <button class="btn bg-brand-600 hover:bg-brand-700 text-white border-none rounded-xl px-6 shadow-md shadow-brand-500/20">Registrar Ajuste</button>
+                        </div>
+                    </div>
+                    <form method="dialog" class="modal-backdrop">
+                        <button @click="cerrarModalAjuste()">cerrar</button>
+                    </form>
+                </dialog>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('inventarioApp', () => ({
+                kardexQuery: '',
+                productoSeleccionado: null,
+                movimientosKardex: [],
+
+                buscarKardex() {
+                    // Simulación de búsqueda para el DEMO
+                    if(this.kardexQuery.length > 2) {
+                        this.productoSeleccionado = {
+                            codigo: this.kardexQuery,
+                            nombre: 'Ejemplo de Producto Buscado',
+                            stock: 45
+                        };
+                        
+                        // Generar data mock para el kardex
+                        this.movimientosKardex = [
+                            { fecha: '24/05/2026 10:30 AM', tipo: 'salida', concepto: 'Venta (Ticket #4021)', entrada: null, salida: 2, saldo: 45, usuario: 'Cajero 1' },
+                            { fecha: '23/05/2026 04:15 PM', tipo: 'salida', concepto: 'Venta (Ticket #4010)', entrada: null, salida: 3, saldo: 47, usuario: 'Cajero 2' },
+                            { fecha: '22/05/2026 09:00 AM', tipo: 'entrada', concepto: 'Ingreso Sincronización OCR (Fac-889)', entrada: 20, salida: null, saldo: 50, usuario: 'Admin' },
+                            { fecha: '20/05/2026 11:20 AM', tipo: 'ajuste', concepto: 'Ajuste Manual (Merma)', entrada: null, salida: 1, saldo: 30, usuario: 'Admin' },
+                            { fecha: '18/05/2026 08:30 AM', tipo: 'entrada', concepto: 'Inventario Inicial', entrada: 31, salida: null, saldo: 31, usuario: 'Sistema' }
+                        ];
+                    } else {
+                        alert("Ingresa un código válido para buscar");
+                    }
+                },
+
+                abrirModalAjuste() {
+                    document.getElementById('modal_ajuste_inventario').showModal();
+                },
+
+                cerrarModalAjuste() {
+                    document.getElementById('modal_ajuste_inventario').close();
+                }
+            }))
+        });
+    </script>
+</body>
+</html>

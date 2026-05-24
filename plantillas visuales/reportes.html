@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es" x-data="{ isDark: $persist(false), sidebarOpen: $persist(true), activeTab: 'reportes' }" :class="isDark ? 'dark' : ''" :data-theme="isDark ? 'dark' : 'light'">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planti Dashboard - Reportes y Analíticas</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+    <!-- PLUGINS DE ALPINE -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@formkit/auto-animate/index.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f5f9f0', 100: '#ECF4E5', 200: '#d7e8c6', 300: '#bcda9e', 400: '#9bc66e', 500: '#7cb34a',
+                            600: '#6FA83A', 700: '#527E2B', 800: '#426524', 900: '#2F4A19',
+                            light: '#ECF4E5', DEFAULT: '#6FA83A', dark: '#527E2B', leaf: '#2F4A19'     
+                        },
+                        surface: { DEFAULT: '#f8fafc', dark: '#0f172a' }
+                    }
+                }
+            }
+        }
+        
+        document.addEventListener('htmx:load', function(evt) {
+            if (window.Alpine) {
+                Alpine.initTree(evt.detail.elt);
+            }
+        });
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .sidebar-transition { transition: width 0.3s ease, background-color 0.3s ease, border-color 0.3s ease; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-surface dark:bg-surface-dark text-gray-800 dark:text-slate-200 font-sans transition-colors duration-300">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside hx-get="sidebar.html" hx-trigger="load" hx-swap="outerHTML"></aside>
+
+        <main class="flex-1 overflow-y-auto flex flex-col">
+            
+            <header hx-get="navbar.html" hx-trigger="load" hx-swap="outerHTML"></header>
+
+            <div class="p-6 md:p-8 flex-1" x-data="{ tabActiva: 'valor' }">
+                
+                <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Reportes y Analíticas</h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Genera reportes de inventario, auditoría y movimientos para exportar o imprimir.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="btn btn-sm btn-outline border-gray-200 hover:border-brand-500 hover:text-brand-600 dark:border-slate-700 dark:hover:border-brand-500 rounded-full px-4 bg-white dark:bg-slate-800 shadow-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            Imprimir
+                        </button>
+                        <button class="btn btn-sm bg-green-600 hover:bg-green-700 text-white border-none rounded-full px-5 shadow-sm">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg>
+                            Exportar a Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- NAVEGACIÓN DE REPORTES -->
+                <div class="border-b border-gray-200 dark:border-slate-700 mb-6 flex gap-6 overflow-x-auto whitespace-nowrap pb-1">
+                    <button @click="tabActiva = 'valor'" 
+                            :class="tabActiva === 'valor' ? 'border-brand-600 text-brand-700 dark:text-brand-400 dark:border-brand-400 font-bold' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                            class="pb-3 text-sm border-b-2 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Reporte de Valor de Inventario
+                    </button>
+                    <button @click="tabActiva = 'bajos'" 
+                            :class="tabActiva === 'bajos' ? 'border-brand-600 text-brand-700 dark:text-brand-400 dark:border-brand-400 font-bold' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                            class="pb-3 text-sm border-b-2 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
+                        Productos Bajos en Stock
+                    </button>
+                    <button @click="tabActiva = 'historial'" 
+                            :class="tabActiva === 'historial' ? 'border-brand-600 text-brand-700 dark:text-brand-400 dark:border-brand-400 font-bold' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                            class="pb-3 text-sm border-b-2 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Historial de Movimientos
+                    </button>
+                </div>
+
+                <!-- VISTA 1: VALOR DE INVENTARIO -->
+                <div x-show="tabActiva === 'valor'" x-transition.opacity class="flex flex-col gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col justify-center items-center text-center">
+                            <span class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Costo Total del Inventario</span>
+                            <span class="text-4xl font-black text-brand-700 dark:text-brand-400">Bs. 45,230.50</span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col justify-center items-center text-center">
+                            <span class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Cantidad Total de Productos Físicos</span>
+                            <span class="text-4xl font-black text-gray-800 dark:text-gray-100">1,420</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+                        <div class="p-4 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <label class="text-sm font-medium text-gray-600 dark:text-gray-300">Filtrar por Departamento:</label>
+                                <select class="select select-sm select-bordered bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-600 w-48 rounded-xl">
+                                    <option>- Todos -</option>
+                                    <option>Abarrotes</option>
+                                    <option>Bebidas</option>
+                                    <option>Lácteos</option>
+                                </select>
+                            </div>
+                            <div class="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Solo se muestran productos que manejan inventario físico.
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full">
+                                <thead class="bg-gray-50/50 dark:bg-slate-900/50 text-gray-500 dark:text-gray-400">
+                                    <tr>
+                                        <th class="py-3 px-6">Código</th>
+                                        <th class="py-3">Descripción del Producto</th>
+                                        <th class="py-3 text-right">Costo Unitario</th>
+                                        <th class="py-3 text-right">Precio Venta</th>
+                                        <th class="py-3 text-center">Existencia</th>
+                                        <th class="py-3 text-right text-brand-700 dark:text-brand-400">Valor Total (Costo)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-700 dark:text-gray-300 text-xs">
+                                    <!-- Ejemplos -->
+                                    <tr class="hover:bg-brand-50/30 border-b border-gray-50 dark:border-slate-700/50">
+                                        <td class="py-2 px-6 font-mono text-gray-500">7501055300075</td>
+                                        <td class="py-2 font-medium">Coca Cola 2Lts Retornable</td>
+                                        <td class="py-2 text-right">Bs. 8.00</td>
+                                        <td class="py-2 text-right">Bs. 11.50</td>
+                                        <td class="py-2 text-center font-bold">45</td>
+                                        <td class="py-2 text-right font-bold text-gray-900 dark:text-white">Bs. 360.00</td>
+                                    </tr>
+                                    <tr class="hover:bg-brand-50/30 border-b border-gray-50 dark:border-slate-700/50">
+                                        <td class="py-2 px-6 font-mono text-gray-500">7501020340001</td>
+                                        <td class="py-2 font-medium">Leche Pil Entera 1Lt</td>
+                                        <td class="py-2 text-right">Bs. 5.50</td>
+                                        <td class="py-2 text-right">Bs. 7.00</td>
+                                        <td class="py-2 text-center font-bold">20</td>
+                                        <td class="py-2 text-right font-bold text-gray-900 dark:text-white">Bs. 110.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA 2: BAJOS EN STOCK -->
+                <div x-show="tabActiva === 'bajos'" x-cloak x-transition.opacity class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 dark:border-slate-700 flex items-center gap-2 text-sm text-gray-500">
+                        <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        Listado de productos cuya existencia es igual o inferior a su nivel mínimo de inventario.
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="table table-sm w-full">
+                            <thead class="bg-amber-50/50 dark:bg-slate-900/50 text-gray-500 dark:text-gray-400">
+                                <tr>
+                                    <th class="py-3 px-6">Código</th>
+                                    <th class="py-3">Descripción del Producto</th>
+                                    <th class="py-3">Departamento</th>
+                                    <th class="py-3 text-center bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400">Existencia Actual</th>
+                                    <th class="py-3 text-center">Mínimo Requerido</th>
+                                    <th class="py-3 text-center text-gray-400">Faltante Sugerido</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700 dark:text-gray-300 text-xs">
+                                <!-- Ejemplos -->
+                                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-50 dark:border-slate-700/50">
+                                    <td class="py-2 px-6 font-mono text-gray-500">7702001040552</td>
+                                    <td class="py-2 font-medium">Galletas Oreo Tubo</td>
+                                    <td class="py-2 text-gray-500">Abarrotes</td>
+                                    <td class="py-2 text-center font-bold text-red-600 dark:text-red-400 text-base">2</td>
+                                    <td class="py-2 text-center font-medium">15</td>
+                                    <td class="py-2 text-center font-bold text-amber-600 dark:text-amber-400">13 u.</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-50 dark:border-slate-700/50">
+                                    <td class="py-2 px-6 font-mono text-gray-500">7702001049999</td>
+                                    <td class="py-2 font-medium">Atún en Aceite 170g</td>
+                                    <td class="py-2 text-gray-500">Abarrotes</td>
+                                    <td class="py-2 text-center font-bold text-red-600 dark:text-red-400 text-base">0</td>
+                                    <td class="py-2 text-center font-medium">10</td>
+                                    <td class="py-2 text-center font-bold text-amber-600 dark:text-amber-400">10 u.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VISTA 3: HISTORIAL DE MOVIMIENTOS -->
+                <div x-show="tabActiva === 'historial'" x-cloak x-transition.opacity class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 dark:border-slate-700 flex flex-wrap items-center gap-4 bg-gray-50/50 dark:bg-slate-900/50">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase">Del día:</label>
+                            <input type="date" class="input input-sm input-bordered bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 rounded-xl" />
+                        </div>
+                        <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+                            <label class="text-xs font-bold text-gray-500 uppercase">Buscar:</label>
+                            <div class="relative w-full">
+                                <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" placeholder="Cajero, Producto o Dpto..." class="input input-sm w-full pl-9 rounded-xl bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600 focus:border-brand-500" />
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase">Tipo Mov:</label>
+                            <select class="select select-sm select-bordered rounded-xl bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600">
+                                <option>- Todos -</option>
+                                <option>Solo Entradas</option>
+                                <option>Solo Salidas</option>
+                                <option>Ajustes / Mermas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto min-h-[300px]">
+                        <table class="table table-sm w-full">
+                            <thead class="bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-slate-700">
+                                <tr>
+                                    <th class="py-3 px-6">Hora</th>
+                                    <th class="py-3">Descripción del Producto</th>
+                                    <th class="py-3">Concepto del Movimiento</th>
+                                    <th class="py-3 text-center text-gray-400">Había</th>
+                                    <th class="py-3 text-center">Tipo</th>
+                                    <th class="py-3 text-center font-bold text-gray-800 dark:text-gray-200">Cant.</th>
+                                    <th class="py-3 text-center bg-brand-50/50 dark:bg-brand-900/10 text-brand-700 dark:text-brand-400">Quedan</th>
+                                    <th class="py-3">Cajero</th>
+                                    <th class="py-3">Departamento</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700 dark:text-gray-300 text-xs">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-50 dark:border-slate-700/50">
+                                    <td class="py-2 px-6 text-gray-500">14:32:05</td>
+                                    <td class="py-2 font-medium">Galletas Oreo Tubo</td>
+                                    <td class="py-2">Venta Mostrador (Ticket #5502)</td>
+                                    <td class="py-2 text-center text-gray-400">4</td>
+                                    <td class="py-2 text-center text-red-500">Salida</td>
+                                    <td class="py-2 text-center font-bold">2</td>
+                                    <td class="py-2 text-center font-bold bg-brand-50/50 dark:bg-brand-900/10 text-brand-700 dark:text-brand-400">2</td>
+                                    <td class="py-2 text-gray-500">Ana Lopez</td>
+                                    <td class="py-2 text-gray-500">Abarrotes</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-50 dark:border-slate-700/50">
+                                    <td class="py-2 px-6 text-gray-500">10:15:22</td>
+                                    <td class="py-2 font-medium">Leche Pil Entera 1Lt</td>
+                                    <td class="py-2">Ajuste Manual (Caducidad)</td>
+                                    <td class="py-2 text-center text-gray-400">22</td>
+                                    <td class="py-2 text-center text-amber-500">Salida</td>
+                                    <td class="py-2 text-center font-bold">2</td>
+                                    <td class="py-2 text-center font-bold bg-brand-50/50 dark:bg-brand-900/10 text-brand-700 dark:text-brand-400">20</td>
+                                    <td class="py-2 text-gray-500">Admin</td>
+                                    <td class="py-2 text-gray-500">Lácteos</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-50 dark:border-slate-700/50">
+                                    <td class="py-2 px-6 text-gray-500">09:00:00</td>
+                                    <td class="py-2 font-medium">Coca Cola 2Lts Retornable</td>
+                                    <td class="py-2">Ingreso Factura (Fac-889)</td>
+                                    <td class="py-2 text-center text-gray-400">25</td>
+                                    <td class="py-2 text-center text-green-500">Entrada</td>
+                                    <td class="py-2 text-center font-bold">20</td>
+                                    <td class="py-2 text-center font-bold bg-brand-50/50 dark:bg-brand-900/10 text-brand-700 dark:text-brand-400">45</td>
+                                    <td class="py-2 text-gray-500">Admin</td>
+                                    <td class="py-2 text-gray-500">Bebidas</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
