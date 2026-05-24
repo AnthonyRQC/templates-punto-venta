@@ -574,7 +574,7 @@
 
                 <!-- MODAL PROVEEDORES -->
                 <dialog id="modal_proveedores" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarModalProveedores()">
-                    <div class="modal-box bg-white dark:bg-slate-900 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 max-w-4xl w-full flex flex-col overflow-hidden shadow-2xl">
+                    <div class="modal-box bg-white dark:bg-slate-900 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 max-w-5xl w-full flex flex-col h-[75vh] overflow-hidden shadow-2xl">
                         
                         <div class="bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-6 py-4 flex justify-between items-center shrink-0">
                             <div class="flex items-center gap-3">
@@ -584,75 +584,114 @@
                             <button @click="cerrarModalProveedores()" class="btn btn-sm btn-circle btn-ghost text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-700">✕</button>
                         </div>
                         
-                        <div class="p-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <div class="flex gap-2">
-                                    <button class="btn btn-sm bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-300 border-none">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                        Nuevo Proveedor
-                                    </button>
-                                </div>
-                                <div class="flex gap-4 items-center">
-                                    <div class="form-control mr-2 hidden md:block">
-                                        <label class="cursor-pointer label gap-2 p-0">
-                                            <span class="label-text text-xs text-gray-500 font-medium">Ver Inactivos</span> 
-                                            <input type="checkbox" class="toggle toggle-xs toggle-error" />
-                                        </label>
+                        <div class="flex-1 flex overflow-hidden">
+                            <!-- Left Panel: List View -->
+                            <div class="w-1/2 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col">
+                                
+                                <div class="p-4 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/50 flex flex-col gap-3 shrink-0">
+                                    <div class="flex justify-between items-center">
+                                        <button class="btn btn-sm bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-300 border-none">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            Nuevo Proveedor
+                                        </button>
+                                        <div class="form-control hidden md:block">
+                                            <label class="cursor-pointer label gap-2 p-0">
+                                                <span class="label-text text-xs text-gray-500 font-medium">Ver Inactivos</span> 
+                                                <input type="checkbox" class="toggle toggle-xs toggle-error" />
+                                            </label>
+                                        </div>
                                     </div>
                                     <div class="relative">
                                         <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                        <input type="text" placeholder="Buscar proveedor..." class="input input-sm input-bordered w-48 pl-9 rounded-full bg-white dark:bg-slate-800 text-sm border-gray-200 dark:border-slate-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                        <input type="text" placeholder="Buscar proveedor..." class="input input-sm input-bordered w-full pl-9 rounded-xl bg-white dark:bg-slate-800 text-sm border-gray-200 dark:border-slate-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div class="overflow-x-auto border border-gray-200 dark:border-slate-700 rounded-xl">
-                                <table class="table table-sm w-full">
-                                    <thead class="bg-gray-50 dark:bg-slate-800 text-gray-500 border-b border-gray-200 dark:border-slate-700">
-                                        <tr>
-                                            <th class="py-3 px-4">ID</th>
-                                            <th class="py-3">Nombre Empresa</th>
-                                            <th class="py-3">NIT</th>
-                                            <th class="py-3">Representante</th>
-                                            <th class="py-3">Teléfonos</th>
-                                            <th class="py-3 w-10"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-sm">
+                                
+                                <div class="overflow-y-auto flex-1">
+                                    <ul class="p-4 space-y-2">
                                         <template x-for="prov in proveedores_list" :key="prov.id">
-                                            <tr @click="proveedorSeleccionadoMasivo = prov" 
-                                                class="cursor-pointer transition-colors border-b border-gray-100 dark:border-slate-700/50"
-                                                :class="proveedorSeleccionadoMasivo?.id === prov.id ? 'bg-brand-50 dark:bg-brand-900/20' : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'">
-                                                <td class="font-mono text-xs text-gray-500 px-4" x-text="prov.id"></td>
-                                                <td class="font-bold text-gray-900 dark:text-white py-3" x-text="prov.nombre"></td>
-                                                <td class="text-gray-600 dark:text-gray-300" x-text="prov.nit"></td>
-                                                <td class="text-gray-600 dark:text-gray-300" x-text="prov.representante"></td>
-                                                <td class="text-gray-600 dark:text-gray-300" x-text="prov.telefono"></td>
-                                                <td class="py-3 text-right" @click.stop>
-                                                    <button class="btn btn-ghost btn-xs text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-1" title="Desactivar Proveedor">
+                                            <li>
+                                                <div class="flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors"
+                                                     :class="proveedorSeleccionadoMasivo?.id === prov.id ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 border' : 'hover:bg-gray-50 dark:hover:bg-slate-800 border-transparent border'"
+                                                     @click="proveedorSeleccionadoMasivo = prov">
+                                                    
+                                                    <div>
+                                                        <span class="font-bold text-gray-800 dark:text-gray-200 block" x-text="prov.nombre"></span>
+                                                        <span class="text-xs text-gray-500" x-text="'NIT: ' + prov.nit"></span>
+                                                    </div>
+                                                    
+                                                    <button class="btn btn-ghost btn-xs text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-1" title="Desactivar Proveedor" @click.stop>
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </button>
-                                                </td>
-                                            </tr>
+                                                </div>
+                                            </li>
                                         </template>
-                                    </tbody>
-                                </table>
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Footer Acción Masiva -->
-                        <div x-show="productosSeleccionados.length > 0 && proveedorSeleccionadoMasivo" 
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 translate-y-2"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             class="bg-brand-50 dark:bg-brand-900/30 border-t border-brand-200 dark:border-brand-800/50 px-6 py-4 flex items-center justify-between">
-                            <div>
-                                <h4 class="font-bold text-brand-800 dark:text-brand-300">Asignación Masiva Lista</h4>
-                                <p class="text-sm text-brand-600 dark:text-brand-400 mt-1">Se asignará <strong x-text="proveedorSeleccionadoMasivo?.nombre"></strong> a <strong class="text-lg mx-1" x-text="productosSeleccionados.length"></strong> productos seleccionados.</p>
+                            <!-- Right Panel: Actions / Form -->
+                            <div class="w-1/2 bg-gray-50 dark:bg-slate-900/50 p-8 flex flex-col justify-center items-center relative overflow-y-auto">
+                                
+                                <template x-if="!proveedorSeleccionadoMasivo">
+                                    <div class="text-center text-gray-400 dark:text-gray-500">
+                                        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                        <p>Selecciona un proveedor<br>para ver sus detalles o asignarlo.</p>
+                                    </div>
+                                </template>
+
+                                <!-- Estado de Acción Masiva -->
+                                <template x-if="proveedorSeleccionadoMasivo && productosSeleccionados.length > 0">
+                                    <div class="w-full max-w-sm text-center">
+                                        <div class="w-20 h-20 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        </div>
+                                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Asignar Proveedor</h2>
+                                        <p class="text-gray-600 dark:text-gray-400 mb-8">
+                                            Vas a asignar a <strong class="text-brand-600 dark:text-brand-400 text-lg mx-1" x-text="productosSeleccionados.length"></strong> productos al proveedor:<br>
+                                            <span class="inline-block mt-3 px-4 py-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm font-medium text-gray-800 dark:text-gray-200" x-text="proveedorSeleccionadoMasivo.nombre"></span>
+                                        </p>
+                                        <button @click="asignarProveedorMasivo()" class="btn btn-block bg-brand-600 hover:bg-brand-700 text-white border-none shadow-lg shadow-brand-500/30 rounded-xl h-12">
+                                            Confirmar Asignación
+                                        </button>
+                                    </div>
+                                </template>
+
+                                <!-- Estado de Edición Normal (Cuando no hay productos seleccionados) -->
+                                <template x-if="proveedorSeleccionadoMasivo && productosSeleccionados.length === 0">
+                                    <div class="w-full max-w-md">
+                                        <h4 class="font-bold text-gray-500 uppercase text-xs tracking-wider mb-6">Información del Proveedor</h4>
+                                        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-100 dark:border-slate-700 shadow-sm space-y-4 text-left w-full">
+                                            
+                                            <div class="form-control w-full">
+                                                <label class="label text-xs font-bold text-gray-700 dark:text-gray-300">Nombre Empresa</label>
+                                                <input type="text" :value="proveedorSeleccionadoMasivo.nombre" class="input input-sm input-bordered w-full rounded-xl focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                            </div>
+                                            
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div class="form-control w-full">
+                                                    <label class="label text-xs font-bold text-gray-700 dark:text-gray-300">NIT</label>
+                                                    <input type="text" :value="proveedorSeleccionadoMasivo.nit" class="input input-sm input-bordered w-full rounded-xl focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                                </div>
+                                                <div class="form-control w-full">
+                                                    <label class="label text-xs font-bold text-gray-700 dark:text-gray-300">Teléfonos</label>
+                                                    <input type="text" :value="proveedorSeleccionadoMasivo.telefono" class="input input-sm input-bordered w-full rounded-xl focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                                </div>
+                                            </div>
+
+                                            <div class="form-control w-full">
+                                                <label class="label text-xs font-bold text-gray-700 dark:text-gray-300">Representante</label>
+                                                <input type="text" :value="proveedorSeleccionadoMasivo.representante" class="input input-sm input-bordered w-full rounded-xl focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                            </div>
+                                            
+                                            <div class="pt-4 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-2 mt-4">
+                                                <button class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">Desactivar</button>
+                                                <button class="btn btn-sm bg-brand-600 hover:bg-brand-700 text-white border-none rounded-lg px-6">Guardar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
-                            <button @click="asignarProveedorMasivo()" class="btn bg-brand-600 hover:bg-brand-700 text-white border-none shadow-sm px-6 rounded-xl">
-                                Confirmar Asignación
-                            </button>
                         </div>
                     </div>
                     <form method="dialog" class="modal-backdrop">
