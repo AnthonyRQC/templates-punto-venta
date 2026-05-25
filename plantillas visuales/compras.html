@@ -642,7 +642,7 @@
                         
                         <div class="p-6 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
                             <!-- Datos Cabecera -->
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-slate-900/50 rounded-2xl border border-gray-100 dark:border-slate-700/80 text-xs">
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-gray-50 dark:bg-slate-900/50 rounded-2xl border border-gray-100 dark:border-slate-700/80 text-xs items-center">
                                 <div>
                                     <span class="font-bold text-gray-400 block uppercase">Proveedor</span>
                                     <span class="font-semibold text-gray-900 dark:text-white" x-text="facturaAConciliar ? facturaAConciliar.proveedor : ''"></span>
@@ -658,6 +658,12 @@
                                 <div>
                                     <span class="font-bold text-gray-400 block uppercase">Monto Total OCR</span>
                                     <span class="font-bold text-brand dark:text-brand-light" x-text="facturaAConciliar ? 'Bs. ' + facturaAConciliar.total.toFixed(2) : ''"></span>
+                                </div>
+                                <div class="text-right">
+                                    <button @click="abrirEditarJson()" class="btn btn-xs bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 border-none rounded-lg font-semibold inline-flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        Editar JSON
+                                    </button>
                                 </div>
                             </div>
 
@@ -935,6 +941,34 @@
                     </div>
                 </dialog>
 
+                <!-- 2.7 MODAL EDITAR JSON RAW (CRUD FALLBACK) -->
+                <dialog id="modal_editar_json" class="modal modal-bottom sm:modal-middle z-[60]">
+                    <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 overflow-hidden shadow-2xl max-w-2xl w-11/12">
+                        
+                        <div class="bg-slate-700 text-white px-6 py-4 flex justify-between items-center">
+                            <h3 class="font-bold text-lg flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                                Editar Datos Raw (JSON Factura)
+                            </h3>
+                            <button @click="cerrarEditarJson()" class="btn btn-sm btn-circle btn-ghost hover:bg-white/20">✕</button>
+                        </div>
+                        
+                        <div class="p-6 flex flex-col gap-4">
+                            <div class="alert alert-warning bg-amber-50 dark:bg-amber-950/10 text-amber-900 dark:text-amber-300 border-amber-200 dark:border-amber-900/30 rounded-xl p-3 text-xs leading-relaxed">
+                                <svg class="w-4 h-4 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                <span>Modifica directamente el JSON crudo del OCR si necesitas corregir errores graves de extracción de la API antes de mapearlo.</span>
+                            </div>
+
+                            <textarea x-model="jsonRawText" class="textarea textarea-bordered textarea-md w-full h-80 font-mono text-xs bg-slate-50 dark:bg-slate-900 focus:border-brand-500 rounded-xl"></textarea>
+                        </div>
+
+                        <div class="bg-gray-50 dark:bg-slate-900/50 px-6 py-4 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-3">
+                            <button class="btn btn-ghost rounded-xl text-xs" @click="cerrarEditarJson()">Cancelar</button>
+                            <button class="btn bg-slate-700 hover:bg-slate-800 text-white border-none rounded-xl px-6 text-xs" @click="guardarEditarJson()">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </dialog>
+
             </div>
         </main>
     </div>
@@ -984,6 +1018,51 @@
                 init() {
                     // Cargar copias profundas
                     this.productosSugeridos = JSON.parse(JSON.stringify(this.sugeridosOriginales));
+
+                    // Semillar colaSincronizacion si está vacía
+                    if (!this.colaSincronizacion || this.colaSincronizacion.length === 0) {
+                        this.colaSincronizacion = [
+                            {
+                                id: 1,
+                                recepcion_folio: 'FAC-2026',
+                                codigo: 'PRD-001',
+                                nombre: 'Abono Orgánico Extra 5kg',
+                                nombre_actual: 'Abono Orgánico Premium 5kg',
+                                costo_nuevo: 50.00,
+                                costo_actual: 45.00,
+                                tipo: 'Precio',
+                                proveedor: 'Agroinsumos S.A.',
+                                fecha: '21/05/2026',
+                                estado: 'Pendiente'
+                            },
+                            {
+                                id: 2,
+                                recepcion_folio: 'FAC-2026',
+                                codigo: 'PRD-002',
+                                nombre: 'Maceta de Barro 20cm',
+                                nombre_actual: 'Maceta de Barro 20cm',
+                                costo_nuevo: 18.00,
+                                costo_actual: 15.00,
+                                tipo: 'Precio',
+                                proveedor: 'Agroinsumos S.A.',
+                                fecha: '21/05/2026',
+                                estado: 'Pendiente'
+                            },
+                            {
+                                id: 3,
+                                recepcion_folio: 'FAC-8902',
+                                codigo: 'NVO-003',
+                                nombre: 'Tierra Preparada 10kg',
+                                nombre_actual: 'NUEVO PRODUCTO',
+                                costo_nuevo: 30.00,
+                                costo_actual: 0.00,
+                                tipo: 'Nuevo',
+                                proveedor: 'Agroinsumos S.A.',
+                                fecha: '21/05/2026',
+                                estado: 'Pendiente'
+                            }
+                        ];
+                    }
                 },
 
                 // GETTERS PARA COMPRAS SUGERIDAS
@@ -1122,6 +1201,8 @@
                 recepcionManual: { proveedor: '', folio: '', items: [] },
                 recepcionSeleccionada: null,
                 itemsDetalle: [],
+                colaSincronizacion: Alpine.$persist([]),
+                jsonRawText: '',
 
                 subirFacturaSimulada() {
                     this.showToast("Cargando archivo en servidor OCR...", "info");
@@ -1184,6 +1265,42 @@
                     this.itemsConciliacion = [];
                 },
 
+                abrirEditarJson() {
+                    if (!this.facturaAConciliar) return;
+                    this.jsonRawText = JSON.stringify({
+                        archivo: this.facturaAConciliar.archivo,
+                        proveedor: this.facturaAConciliar.proveedor,
+                        nit: this.facturaAConciliar.nit,
+                        total: this.facturaAConciliar.total,
+                        items: this.facturaAConciliar.items
+                    }, null, 2);
+                    document.getElementById('modal_editar_json').showModal();
+                },
+
+                cerrarEditarJson() {
+                    document.getElementById('modal_editar_json').close();
+                    this.jsonRawText = '';
+                },
+
+                guardarEditarJson() {
+                    try {
+                        const parsed = JSON.parse(this.jsonRawText);
+                        if (!parsed.items || !Array.isArray(parsed.items)) {
+                            throw new Error("El JSON debe contener un arreglo 'items'");
+                        }
+                        this.facturaAConciliar.proveedor = parsed.proveedor || this.facturaAConciliar.proveedor;
+                        this.facturaAConciliar.nit = parsed.nit || this.facturaAConciliar.nit;
+                        this.facturaAConciliar.total = parsed.total || this.facturaAConciliar.total;
+                        this.facturaAConciliar.items = parsed.items;
+                        
+                        this.abrirConciliacion(this.facturaAConciliar);
+                        this.cerrarEditarJson();
+                        this.showToast("Datos de factura JSON modificados exitosamente.", "success");
+                    } catch (e) {
+                        this.showToast("Error al parsear el JSON: " + e.message, "error");
+                    }
+                },
+
                 recalcularFila(item) {
                     const totalUnidades = item.cantidad * item.unidadesPorPaquete;
                     if (item.ice || item.iceEsp) {
@@ -1199,22 +1316,37 @@
                         return;
                     }
 
-                    // Actualizar estado factura OCR
                     this.facturaAConciliar.estado = 'Conciliado';
+                    let itemsParaSincronizar = 0;
 
-                    // Actualizar inventario/costos
                     this.itemsConciliacion.forEach(item => {
                         const prodIndex = this.productosSugeridos.findIndex(p => p.codigo === item.codigo);
                         const totalIngresar = item.cantidad * item.unidadesPorPaquete;
 
                         if (prodIndex !== -1) {
-                            // Producto ya existe en catálogo
                             this.productosSugeridos[prodIndex].existencia += totalIngresar;
                             if (item.actualizarCosto) {
                                 this.productosSugeridos[prodIndex].precioCosto = item.costoRealUnitario;
+                            } else {
+                                const costoActual = this.productosSugeridos[prodIndex].precioCosto;
+                                if (Math.abs(costoActual - item.costoRealUnitario) > 0.01) {
+                                    this.colaSincronizacion.push({
+                                        id: this.colaSincronizacion.length + 1,
+                                        recepcion_folio: this.folioFacturaFisica,
+                                        codigo: item.codigo,
+                                        nombre: item.nombre,
+                                        nombre_actual: this.productosSugeridos[prodIndex].nombre,
+                                        costo_nuevo: item.costoRealUnitario,
+                                        costo_actual: costoActual,
+                                        tipo: 'Precio',
+                                        proveedor: this.facturaAConciliar.proveedor,
+                                        fecha: new Date().toLocaleDateString('es-MX'),
+                                        estado: 'Pendiente'
+                                    });
+                                    itemsParaSincronizar++;
+                                }
                             }
                         } else {
-                            // Registrar nuevo producto
                             this.productosSugeridos.push({
                                 codigo: item.codigo,
                                 nombre: item.nombre,
@@ -1224,16 +1356,29 @@
                                 proveedor: this.facturaAConciliar.proveedor,
                                 precioCosto: item.costoRealUnitario
                             });
+
+                            this.colaSincronizacion.push({
+                                id: this.colaSincronizacion.length + 1,
+                                recepcion_folio: this.folioFacturaFisica,
+                                codigo: item.codigo,
+                                nombre: item.nombre,
+                                nombre_actual: 'NUEVO PRODUCTO',
+                                costo_nuevo: item.costoRealUnitario,
+                                costo_actual: 0.00,
+                                tipo: 'Nuevo',
+                                proveedor: this.facturaAConciliar.proveedor,
+                                fecha: new Date().toLocaleDateString('es-MX'),
+                                estado: 'Pendiente'
+                            });
+                            itemsParaSincronizar++;
                         }
 
-                        // Limpiar de la lista de compras si estaba
                         const listIdx = this.listaDeCompras.findIndex(l => l.codigo === item.codigo);
                         if (listIdx !== -1) {
                             this.listaDeCompras.splice(listIdx, 1);
                         }
                     });
 
-                    // Añadir a Histórico
                     this.historicoCompras.unshift({
                         folio: this.folioFacturaFisica,
                         fecha: new Date().toLocaleDateString('es-MX') + ' ' + new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }),
@@ -1250,7 +1395,11 @@
                     });
 
                     this.cerrarConciliacion();
-                    this.showToast("Factura conciliada correctamente. Stock y costos actualizados.", "success");
+                    if (itemsParaSincronizar > 0) {
+                        this.showToast(`Mercadería ingresada. Se enviaron ${itemsParaSincronizar} cambios de catálogo en espera a la pestaña Facturas OCR (Sincronización).`, "success");
+                    } else {
+                        this.showToast("Factura conciliada correctamente. Stock y costos actualizados.", "success");
+                    }
                     this.activeSubTab = 'historico';
                 },
 

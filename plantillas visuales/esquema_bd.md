@@ -173,6 +173,20 @@ A continuación se detalla el diseño de la base de datos con sus tablas, column
 - **`estado_conciliacion`**: Texto (Enum: `'Pendiente'`, `'Conciliado'`, `'Ignorado'`).
 - **`recepcion_id`**: Entero, **Llave Foránea** que enlaza con `recepciones_compra(id)` (Se llena al momento de conciliar y guardar los productos físicamente en stock).
 
+### 13. Tabla: `sincronizacion_catalogo` (Cola de Sincronización de Catálogo)
+*Bitácora intermedia que encola las diferencias detectadas durante la recepción de mercancías (nuevos precios, nuevos nombres o productos inexistentes en catálogo), permitiendo que el administrador revise y decida su aplicación definitiva en otra sesión.*
+- **`id`**: Entero, Llave Primaria (Autoincremental).
+- **`recepcion_id`**: Entero, **Llave Foránea** que enlaza con `recepciones_compra(id)` (Origen del cambio).
+- **`producto_id`**: Entero, **Llave Foránea** que enlaza con `productos(id)` (Nulo si el producto es nuevo).
+- **`codigo_proveedor`**: Texto, Obligatorio (Código asignado por el proveedor).
+- **`nombre_factura`**: Texto, Obligatorio (Nombre tal como vino en la factura/OCR).
+- **`costo_unitario_factura`**: Decimal (Costo real unitario calculado en la conciliación).
+- **`nombre_actual_catalogo`**: Texto, Opcional (Nombre registrado en catálogo).
+- **`costo_unitario_actual_catalogo`**: Decimal, Opcional (Costo registrado en catálogo).
+- **`tipo_cambio`**: Texto (Enum: `'Precio'`, `'Nombre'`, `'Ambos'`, `'Nuevo'`).
+- **`estado`**: Texto (Enum: `'Pendiente'`, `'Sincronizado'`, `'Descartado'`).
+- **`fecha_deteccion`**: Fecha y Hora.
+
 ---
 
 ## 📝 Apuntes y Fórmulas del Negocio
