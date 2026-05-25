@@ -225,3 +225,40 @@ Para procesar compras dinámicas y conciliar la factura del proveedor con el inv
    - El documento digitalizado se marca como `'Conciliado'`.
    - Los ítems de la `lista_compras` de ese proveedor que coincidan con la factura se marcan como `'Comprados'`.
 
+### 14. Tabla: `auditorias_inventario` (Sesiones de Control Físico)
+*Almacena la cabecera de las auditorías de inventario de fin de mes o parciales.*
+- **`id`**: Entero, Llave Primaria (Autoincremental).
+- **`fecha_inicio`**: Fecha y Hora.
+- **`fecha_fin`**: Fecha y Hora (nulo si la sesión está en borrador).
+- **`usuario_id`**: Entero, **Llave Foránea** que enlaza con `usuarios(id)` (auditor que realiza el control).
+- **`departamento_id`**: Entero, **Llave Foránea** que enlaza con `departamentos(id)` (nulo si se audita toda la tienda).
+- **`estado`**: Texto (Enum: `'Borrador'`, `'Procesada'`, `'Cancelada'`).
+- **`total_diferencias_faltante`**: Decimal (Valor total en Bs. de productos faltantes).
+- **`total_diferencias_sobrante`**: Decimal (Valor total en Bs. de productos sobrantes).
+- **`valor_neto_ajuste`**: Decimal (Valor neto final del ajuste contable).
+- **`notas`**: Texto (ej. "Auditoría Mensual - Mayo 2026").
+
+### 15. Tabla: `auditorias_inventario_detalles` (Detalle de Toma Física)
+*Artículos contados físicamente en la auditoría con sus respectivas discrepancias.*
+- **`id`**: Entero, Llave Primaria (Autoincremental).
+- **`auditoria_id`**: Entero, **Llave Foránea** que enlaza con `auditorias_inventario(id)` con eliminación en cascada.
+- **`producto_id`**: Entero, **Llave Foránea** que enlaza con `productos(id)`.
+- **`stock_sistema`**: Decimal (Existencia teórica en el sistema al momento de iniciar la auditoría).
+- **`stock_fisico`**: Decimal (Existencia física real contada por el usuario).
+- **`diferencia`**: Decimal (Calculado: `stock_fisico - stock_sistema`).
+- **`costo_unitario`**: Decimal (Costo unitario del producto para valorizar la diferencia).
+- **`valor_diferencia`**: Decimal (Calculado: `diferencia * costo_unitario`).
+
+---
+
+## 📝 Apuntes y Fórmulas del Negocio (Ajuste de Inventario)
+
+### 4. Flujo de Auditoría e Inventario Físico (Fin de Mes)
+1. **Inicio de Auditoría:** El administrador crea una sesión de auditoría (`auditorias_inventario`) con estado `'Borrador'`, seleccionando un departamento o la tienda completa. El sistema captura la foto del stock actual (`stock_sistema`) para cada producto.
+2. **Conteo Físico:** El personal de la tienda cuenta físicamente los productos en los estantes y registra la cantidad real (`stock_fisico`) en el sistema.
+3. **Guardar Borrador:** Se permite guardar la auditoría a medias para continuar al día siguiente sin alterar las existencias.
+4. **Procesar y Ajustar:** Al finalizar la auditoría, el administrador revisa el informe de discrepancias. Al presionar "Procesar":
+   - El estado de la auditoría cambia a `'Procesada'`.
+   - Se actualiza la `existencia` en `productos` a la cantidad física real (`existencia = stock_fisico`).
+   - Se genera un movimiento de tipo `'Ajuste'` en `movimientos_inventario` (Kardex) para cada producto que haya tenido diferencia, detallando el concepto "Ajuste por Auditoría Física" y registrando la diferencia como entrada (si sobra) o salida (si falta).
+

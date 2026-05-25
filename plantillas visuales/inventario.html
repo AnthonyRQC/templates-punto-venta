@@ -63,6 +63,26 @@
 
             <div class="p-6 md:p-8 flex-1" x-data="inventarioApp()">
                 
+                <!-- NOTIFICACIONES TOAST -->
+                <div class="toast toast-end toast-bottom z-50">
+                    <template x-for="toast in toasts" :key="toast.id">
+                        <div class="alert shadow-lg rounded-2xl border transition-all duration-300"
+                             :class="{
+                                'alert-success bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800/30': toast.tipo === 'success',
+                                'alert-info bg-blue-50 dark:bg-blue-950/20 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800/30': toast.tipo === 'info',
+                                'alert-error bg-red-50 dark:bg-red-950/20 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800/30': toast.tipo === 'error'
+                             }"
+                             x-transition>
+                            <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" x-show="toast.tipo === 'success'"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" x-show="toast.tipo === 'info'"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" x-show="toast.tipo === 'error'"/>
+                            </svg>
+                            <span class="text-xs font-semibold" x-text="toast.mensaje"></span>
+                        </div>
+                    </template>
+                </div>
+
                 <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-8">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Operaciones de Inventario</h1>
@@ -76,8 +96,25 @@
                     </div>
                 </div>
 
+                <!-- PESTAÑAS (TABS) -->
+                <div class="flex flex-wrap gap-2 mb-6 bg-white/50 dark:bg-slate-800/50 p-2 rounded-2xl border border-gray-100 dark:border-slate-800/80 shadow-sm max-w-max">
+                    <button @click="activeSubTab = 'kardex'" 
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center gap-2"
+                            :class="activeSubTab === 'kardex' ? 'bg-brand text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700/50 dark:text-slate-400'">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        Kardex de Movimientos
+                    </button>
+                    <button @click="activeSubTab = 'auditoria'" 
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center gap-2"
+                            :class="activeSubTab === 'auditoria' ? 'bg-brand text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700/50 dark:text-slate-400'">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Auditoría Mensual (Toma Física)
+                        <span x-show="auditoriaActiva" class="badge badge-xs badge-warning text-[9px] font-bold text-white uppercase rounded bg-amber-500 border-none px-1.5 py-0.5" style="display: none;">En curso</span>
+                    </button>
+                </div>
+
                 <!-- SECCIÓN: KARDEX DE INVENTARIO -->
-                <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mb-8">
+                <div x-show="activeSubTab === 'kardex'" x-transition class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mb-8">
                     <div class="p-6 border-b border-gray-100 dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h2 class="font-bold text-lg text-brand-700 dark:text-brand-400 uppercase tracking-wider flex items-center gap-2">
@@ -190,17 +227,19 @@
                             <!-- Buscar Producto para Ajuste -->
                             <div>
                                 <label class="label text-xs font-bold uppercase text-gray-500 pt-0">Producto a ajustar</label>
-                                <div class="relative">
-                                    <input type="text" placeholder="Escribe el código o nombre..." class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 rounded-xl" />
-                                    <svg class="w-4 h-4 text-gray-400 absolute right-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                </div>
+                                <select x-model="ajusteForm.codigo" class="select select-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl">
+                                    <option value="" disabled>Selecciona un producto...</option>
+                                    <template x-for="p in catalogoProductos" :key="p.codigo">
+                                        <option :value="p.codigo" x-text="`${p.nombre} (Stock: ${p.stock})`"></option>
+                                    </template>
+                                </select>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="label text-xs font-bold uppercase text-gray-500">Tipo de Movimiento</label>
-                                    <select class="select select-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl">
-                                        <option disabled selected>Selecciona tipo...</option>
+                                    <select x-model="ajusteForm.tipo" class="select select-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl">
+                                        <option value="" disabled>Selecciona tipo...</option>
                                         <optgroup label="Salidas (-)">
                                             <option value="merma">Merma / Producto Dañado</option>
                                             <option value="caducidad">Caducidad</option>
@@ -214,24 +253,299 @@
                                 </div>
                                 <div>
                                     <label class="label text-xs font-bold uppercase text-gray-500">Cantidad</label>
-                                    <input type="number" min="1" placeholder="0" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl text-lg font-bold text-center" />
+                                    <input type="number" min="1" x-model.number="ajusteForm.cantidad" placeholder="0" class="input input-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl text-lg font-bold text-center" />
                                 </div>
                             </div>
 
                             <div>
                                 <label class="label text-xs font-bold uppercase text-gray-500">Observaciones (Opcional)</label>
-                                <textarea class="textarea textarea-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl resize-none h-20" placeholder="Añade un detalle sobre por qué se realiza el ajuste..."></textarea>
+                                <textarea x-model="ajusteForm.observaciones" class="textarea textarea-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl resize-none h-20" placeholder="Añade un detalle sobre por qué se realiza el ajuste..."></textarea>
                             </div>
                         </div>
 
                         <div class="bg-gray-50 dark:bg-slate-900/50 px-6 py-4 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-3">
                             <button class="btn btn-ghost rounded-xl" @click="cerrarModalAjuste()">Cancelar</button>
-                            <button class="btn bg-brand-600 hover:bg-brand-700 text-white border-none rounded-xl px-6 shadow-md shadow-brand-500/20">Registrar Ajuste</button>
+                            <button class="btn bg-brand-600 hover:bg-brand-700 text-white border-none rounded-xl px-6 shadow-md shadow-brand-500/20" @click="registrarAjusteManual()">Registrar Ajuste</button>
                         </div>
                     </div>
                     <form method="dialog" class="modal-backdrop">
                         <button @click="cerrarModalAjuste()">cerrar</button>
                     </form>
+                </dialog>
+
+
+                <!-- SECCIÓN: AUDITORÍA DE INVENTARIO -->
+                <div x-show="activeSubTab === 'auditoria'" x-cloak x-transition class="flex flex-col gap-6 mb-8">
+                    
+                    <!-- CASE 1: SIN AUDITORÍA ACTIVA -->
+                    <div x-show="!auditoriaActiva" class="flex flex-col gap-6" x-transition>
+                        
+                        <!-- Panel de Bienvenida / Crear Sesión -->
+                        <div class="bg-gradient-to-r from-brand-600 to-brand-700 text-white rounded-3xl p-6 md:p-8 shadow-md flex flex-col md:flex-row justify-between items-center gap-6">
+                            <div class="max-w-xl">
+                                <h2 class="text-xl font-bold mb-2">Toma Física de Inventario (Auditoría Mensual)</h2>
+                                <p class="text-sm opacity-90 leading-relaxed">Inicia una sesión de control de stock físico para auditar las existencias reales en los estantes. Al finalizar, el sistema calculará las discrepancias de inventario y ajustará automáticamente los saldos del Kardex.</p>
+                            </div>
+                            <button @click="abrirIniciarAuditoria()" class="btn bg-white hover:bg-gray-100 text-brand-700 font-bold border-none rounded-xl px-6 py-2 shadow-sm shrink-0">
+                                Iniciar Nuevo Control
+                            </button>
+                        </div>
+
+                        <!-- Historial de Auditorías Procesadas -->
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+                            <div class="p-6 border-b border-gray-100 dark:border-slate-700">
+                                <h3 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">Historial de Auditorías Realizadas</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Lista de los controles de inventario completados y aplicados al Kardex.</p>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="table table-sm w-full">
+                                    <thead class="bg-gray-50/50 dark:bg-slate-900/50 text-gray-500 font-bold border-b border-gray-100 dark:border-slate-700">
+                                        <tr>
+                                            <th class="py-3 px-6">ID / Fecha</th>
+                                            <th class="py-3">Departamento</th>
+                                            <th class="py-3 text-center">Ítems Auditados</th>
+                                            <th class="py-3 text-center">Con Diferencia</th>
+                                            <th class="py-3 text-right">Faltantes (-)</th>
+                                            <th class="py-3 text-right">Sobrantes (+)</th>
+                                            <th class="py-3 text-right">Ajuste Neto</th>
+                                            <th class="py-3">Notas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-700 dark:text-gray-300 text-sm">
+                                        <template x-for="aud in historicoAuditorias" :key="aud.id">
+                                            <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-50 dark:border-slate-700/50">
+                                                <td class="py-3 px-6">
+                                                    <div class="font-bold text-gray-900 dark:text-white" x-text="'AUD-' + aud.id"></div>
+                                                    <span class="text-[10px] text-gray-400" x-text="aud.fecha_fin"></span>
+                                                </td>
+                                                <td class="py-3 text-xs" x-text="aud.departamento"></td>
+                                                <td class="py-3 text-center font-bold" x-text="aud.total_items"></td>
+                                                <td class="py-3 text-center">
+                                                    <span class="badge text-[10px] font-bold rounded-md px-1.5 py-0.5 border-none" 
+                                                          :class="aud.diferencias > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/20 dark:text-amber-300' : 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300'" 
+                                                          x-text="aud.diferencias + ' un.'"></span>
+                                                </td>
+                                                <td class="py-3 text-right text-red-500 font-mono font-medium" x-text="'Bs. ' + aud.faltantes.toFixed(2)"></td>
+                                                <td class="py-3 text-right text-green-500 font-mono font-medium" x-text="'Bs. ' + aud.sobrantes.toFixed(2)"></td>
+                                                <td class="py-3 text-right font-mono font-bold" 
+                                                    :class="aud.neto < 0 ? 'text-red-600' : (aud.neto > 0 ? 'text-green-600' : 'text-gray-500')" 
+                                                    x-text="(aud.neto < 0 ? '-' : (aud.neto > 0 ? '+' : '')) + 'Bs. ' + Math.abs(aud.neto).toFixed(2)"></td>
+                                                <td class="py-3 text-xs text-gray-500 truncate max-w-xs" x-text="aud.notas"></td>
+                                            </tr>
+                                        </template>
+                                        <tr x-show="historicoAuditorias.length === 0">
+                                            <td colspan="8" class="py-12 text-center text-gray-400 dark:text-gray-500">
+                                                No se han realizado auditorías de stock aún.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CASE 2: AUDITORÍA ACTIVA EN CURSO -->
+                    <div x-show="auditoriaActiva" class="flex flex-col gap-6" x-transition>
+                        
+                        <!-- Cabecera de Auditoría -->
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-gray-100 dark:border-slate-700 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-lg text-gray-900 dark:text-white">Auditoría Física en Curso</h3>
+                                    <span class="badge badge-warning bg-amber-400 text-white font-bold text-[9px] uppercase border-none px-1.5 py-0.5 rounded">Borrador</span>
+                                </div>
+                                <div class="flex flex-wrap gap-4 mt-2 text-xs text-gray-500">
+                                    <span><strong>Depto:</strong> <span x-text="auditoriaActiva ? auditoriaActiva.departamento : ''"></span></span>
+                                    <span><strong>Inicio:</strong> <span x-text="auditoriaActiva ? auditoriaActiva.fecha_inicio : ''"></span></span>
+                                    <span x-show="auditoriaActiva && auditoriaActiva.notas"><strong>Notas:</strong> <span x-text="auditoriaActiva ? auditoriaActiva.notas : ''"></span></span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                                <button @click="confirmarCancelarAuditoria()" class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl px-4 text-xs">
+                                    Cancelar
+                                </button>
+                                <button @click="guardarBorradorAuditoria()" class="btn btn-sm bg-green-600 hover:bg-green-700 text-white border-none rounded-xl px-4 text-xs flex items-center gap-1.5 shadow-sm">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                                    Guardar Borrador
+                                </button>
+                                <button @click="abrirResumenAuditoria()" class="btn btn-sm bg-brand hover:bg-brand-700 text-white border-none rounded-xl px-4 text-xs flex items-center gap-1.5 shadow-sm shadow-brand-500/20">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    Finalizar y Ajustar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tabla del Conteo Físico -->
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+                            <div class="p-6 border-b border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div>
+                                    <h4 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-xs">Planilla de Conteo de Stock</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Compara el inventario del sistema con la cantidad física contada.</p>
+                                </div>
+                                
+                                <!-- Buscador rápido -->
+                                <div class="relative w-full sm:w-64">
+                                    <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <input type="text" placeholder="Buscar por código o nombre..." x-model="auditSearchQuery" class="input input-sm w-full pl-9 rounded-xl bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 focus:border-brand-500 text-xs" />
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="table table-sm w-full">
+                                    <thead class="bg-gray-50/50 dark:bg-slate-900/50 text-gray-500 font-bold border-b border-gray-100 dark:border-slate-700">
+                                        <tr>
+                                            <th class="py-3 px-6">Código</th>
+                                            <th class="py-3">Producto</th>
+                                            <th class="py-3">Depto</th>
+                                            <th class="py-3 text-right">Costo Unit.</th>
+                                            <th class="py-3 text-center bg-gray-100/30 dark:bg-slate-800/20">Stock Sistema</th>
+                                            <th class="py-3 text-center w-36">Stock Físico Real</th>
+                                            <th class="py-3 text-center">Diferencia</th>
+                                            <th class="py-3 text-right">Valor Ajuste</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-gray-700 dark:text-gray-300 text-sm">
+                                        <template x-for="item in auditoriaActivaItemsFiltrados" :key="item.codigo">
+                                            <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-50 dark:border-slate-700/50">
+                                                <td class="py-3 px-6 font-mono text-xs text-gray-400" x-text="item.codigo"></td>
+                                                <td class="py-3 font-semibold text-gray-900 dark:text-white" x-text="item.nombre"></td>
+                                                <td class="py-3 text-xs" x-text="item.depto"></td>
+                                                <td class="py-3 text-right font-mono text-xs" x-text="'Bs. ' + item.precioCosto.toFixed(2)"></td>
+                                                <td class="py-3 text-center font-bold bg-gray-100/10 dark:bg-slate-800/10" x-text="item.stock_sistema"></td>
+                                                <td class="py-3 text-center">
+                                                    <div class="flex items-center justify-center gap-1">
+                                                        <button @click="if(item.stock_fisico > 0) item.stock_fisico--; recalcularFilaAudit(item);" class="btn btn-xs btn-circle btn-ghost border border-gray-200 dark:border-slate-600">-</button>
+                                                        <input type="number" min="0" x-model.number="item.stock_fisico" @input="recalcularFilaAudit(item)" class="input input-xs w-14 text-center font-bold rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800" />
+                                                        <button @click="item.stock_fisico++; recalcularFilaAudit(item);" class="btn btn-xs btn-circle btn-ghost border border-gray-200 dark:border-slate-600">+</button>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 text-center">
+                                                    <span x-show="item.stock_fisico - item.stock_sistema === 0" class="text-xs text-gray-400 font-semibold">Cuadrado</span>
+                                                    <span x-show="item.stock_fisico - item.stock_sistema < 0" class="badge badge-error bg-red-100 dark:bg-red-950/20 text-red-800 dark:text-red-300 text-[10px] font-bold rounded-md px-1.5 py-0.5 border-none" x-text="(item.stock_fisico - item.stock_sistema) + ' un.'"></span>
+                                                    <span x-show="item.stock_fisico - item.stock_sistema > 0" class="badge badge-success bg-green-100 dark:bg-green-950/20 text-green-800 dark:text-green-300 text-[10px] font-bold rounded-md px-1.5 py-0.5 border-none" x-text="'+' + (item.stock_fisico - item.stock_sistema) + ' un.'"></span>
+                                                </td>
+                                                <td class="py-3 text-right font-mono font-medium" 
+                                                    :class="item.stock_fisico - item.stock_sistema < 0 ? 'text-red-500' : (item.stock_fisico - item.stock_sistema > 0 ? 'text-green-500' : 'text-gray-400')" 
+                                                    x-text="item.stock_fisico - item.stock_sistema === 0 ? 'Bs. 0.00' : ((item.stock_fisico - item.stock_sistema < 0 ? '-' : '+') + 'Bs. ' + Math.abs((item.stock_fisico - item.stock_sistema) * item.precioCosto).toFixed(2))"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Resumen en tiempo real al pie de la planilla -->
+                            <div class="bg-gray-50 dark:bg-slate-900 border-t border-gray-100 dark:border-slate-700 p-6 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-100 dark:border-slate-700/60 shadow-sm">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Faltante Total</span>
+                                    <span class="text-lg font-black text-red-500 font-mono" x-text="'Bs. ' + resumenLiveAuditoria.faltantes.toFixed(2)"></span>
+                                </div>
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-100 dark:border-slate-700/60 shadow-sm">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Sobrante Total</span>
+                                    <span class="text-lg font-black text-green-500 font-mono" x-text="'Bs. ' + resumenLiveAuditoria.sobrantes.toFixed(2)"></span>
+                                </div>
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-gray-100 dark:border-slate-700/60 shadow-sm">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Ajuste Neto Estimado</span>
+                                    <span class="text-lg font-black font-mono" 
+                                          :class="resumenLiveAuditoria.neto < 0 ? 'text-red-600' : (resumenLiveAuditoria.neto > 0 ? 'text-green-600' : 'text-gray-500')" 
+                                          x-text="(resumenLiveAuditoria.neto < 0 ? '-' : (resumenLiveAuditoria.neto > 0 ? '+' : '')) + 'Bs. ' + Math.abs(resumenLiveAuditoria.neto).toFixed(2)"></span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DIALOG: INICIAR AUDITORÍA -->
+                <dialog id="modal_iniciar_auditoria" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarIniciarAuditoria()">
+                    <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 overflow-hidden shadow-2xl max-w-md">
+                        <div class="bg-brand text-white px-6 py-4 flex justify-between items-center">
+                            <h3 class="font-bold text-lg flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Configurar Auditoría de Stock
+                            </h3>
+                            <button @click="cerrarIniciarAuditoria()" class="btn btn-sm btn-circle btn-ghost hover:bg-white/20">✕</button>
+                        </div>
+                        
+                        <div class="p-6 flex flex-col gap-4">
+                            <div>
+                                <label class="label text-xs font-bold uppercase text-gray-400">Departamento a Auditar</label>
+                                <select x-model="nuevaAuditoriaForm.departamento" class="select select-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl">
+                                    <option value="Todos">- Todos los departamentos -</option>
+                                    <option value="Abarrotes">Abarrotes</option>
+                                    <option value="Bebidas">Bebidas</option>
+                                    <option value="Lácteos">Lácteos</option>
+                                    <option value="Limpieza">Limpieza</option>
+                                    <option value="Carnes y Embutidos">Carnes y Embutidos</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="label text-xs font-bold uppercase text-gray-400">Notas de Auditoría (Opcional)</label>
+                                <textarea x-model="nuevaAuditoriaForm.notas" class="textarea textarea-bordered w-full bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-700 rounded-xl resize-none h-20" placeholder="Ej. Control de fin de mes de refrescos..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-slate-900/50 px-6 py-4 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-3">
+                            <button class="btn btn-ghost rounded-xl text-xs" @click="cerrarIniciarAuditoria()">Cancelar</button>
+                            <button class="btn bg-brand hover:bg-brand-700 text-white border-none rounded-xl px-6 text-xs shadow-md shadow-brand-500/20" @click="confirmarIniciarAuditoria()">Iniciar Control</button>
+                        </div>
+                    </div>
+                </dialog>
+
+                <!-- DIALOG: RESUMEN DE DISCREPANCIAS Y FINALIZACIÓN -->
+                <dialog id="modal_resumen_auditoria" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarResumenAuditoria()">
+                    <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 overflow-hidden shadow-2xl max-w-lg">
+                        <div class="bg-brand text-white px-6 py-4 flex justify-between items-center">
+                            <h3 class="font-bold text-lg flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Resumen de Ajuste e Inventario Físico
+                            </h3>
+                            <button @click="cerrarResumenAuditoria()" class="btn btn-sm btn-circle btn-ghost hover:bg-white/20">✕</button>
+                        </div>
+                        
+                        <div class="p-6 flex flex-col gap-5">
+                            <div class="alert alert-warning bg-amber-50 text-amber-900 dark:bg-amber-950/10 dark:text-amber-300 border-amber-200 dark:border-amber-900/20 rounded-xl p-3 text-xs leading-relaxed">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                <span>Al procesar la auditoría, las existencias en catálogo se actualizarán de forma permanente a los valores del Stock Físico Real, y se generarán los correspondientes movimientos de Ajuste en el Kardex.</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-gray-50 dark:bg-slate-900/40 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Productos Cuadrados</span>
+                                    <span class="text-xl font-bold text-gray-800 dark:text-slate-200" x-text="resumenFilaAuditoria.cuadrados"></span>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-slate-900/40 p-4 rounded-xl border border-gray-100 dark:border-slate-700">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Con Discrepancias</span>
+                                    <span class="text-xl font-bold text-amber-600" x-text="resumenFilaAuditoria.diferencias"></span>
+                                </div>
+                            </div>
+
+                            <div class="divider my-0"></div>
+
+                            <div class="flex flex-col gap-2.5">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-gray-500">Valor de Pérdidas (Faltante):</span>
+                                    <span class="font-bold text-red-500 font-mono" x-text="'Bs. ' + resumenLiveAuditoria.faltantes.toFixed(2)"></span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-gray-500">Valor de Sobrantes:</span>
+                                    <span class="font-bold text-green-500 font-mono" x-text="'Bs. ' + resumenLiveAuditoria.sobrantes.toFixed(2)"></span>
+                                </div>
+                                <div class="flex justify-between items-center border-t border-gray-100 dark:border-slate-700 pt-2.5 text-sm">
+                                    <span class="font-bold text-gray-900 dark:text-white">Impacto Neto en Ajuste:</span>
+                                    <span class="font-black font-mono text-lg" 
+                                          :class="resumenLiveAuditoria.neto < 0 ? 'text-red-600' : (resumenLiveAuditoria.neto > 0 ? 'text-green-600' : 'text-gray-500')" 
+                                          x-text="(resumenLiveAuditoria.neto < 0 ? '-' : (resumenLiveAuditoria.neto > 0 ? '+' : '')) + 'Bs. ' + Math.abs(resumenLiveAuditoria.neto).toFixed(2)"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 dark:bg-slate-900/50 px-6 py-4 border-t border-gray-100 dark:border-slate-700 flex justify-end gap-3">
+                            <button class="btn btn-ghost rounded-xl text-xs" @click="cerrarResumenAuditoria()">Cancelar</button>
+                            <button class="btn bg-brand hover:bg-brand-700 text-white border-none rounded-xl px-6 text-xs shadow-md shadow-brand-500/20" @click="procesarAuditoriaFinal()">Confirmar y Ajustar Inventario</button>
+                        </div>
+                    </div>
                 </dialog>
 
             </div>
@@ -241,38 +555,332 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('inventarioApp', () => ({
+                activeSubTab: 'kardex',
+                
+                // NOTIFICACIONES
+                toasts: [],
+                toastCount: 0,
+                showToast(mensaje, tipo = 'success') {
+                    const id = ++this.toastCount;
+                    this.toasts.push({ id, mensaje, tipo });
+                    setTimeout(() => {
+                        this.toasts = this.toasts.filter(t => t.id !== id);
+                    }, 3500);
+                },
+
+                // CATÁLOGO DE PRODUCTOS (Simulado y Persistente)
+                catalogoProductos: Alpine.$persist([
+                    { codigo: '7501055300075', nombre: 'Coca Cola 2Lts Retornable', depto: 'Bebidas', stock: 4, precioCosto: 24.50 },
+                    { codigo: '7501000111203', nombre: 'Pan Integral Bimbo Grande', depto: 'Abarrotes', stock: 2, precioCosto: 38.00 },
+                    { codigo: '7501020540454', nombre: 'Leche Entera Lala 1L', depto: 'Lácteos', stock: 8, precioCosto: 21.00 },
+                    { codigo: '7501055310234', nombre: 'Agua Ciel 1.5L', depto: 'Bebidas', stock: 0, precioCosto: 11.50 },
+                    { codigo: '7501032120023', nombre: 'Nescafé Clásico 200g', depto: 'Abarrotes', stock: 1, precioCosto: 85.00 },
+                    { codigo: '7501011122334', nombre: 'Jamón de Pavo Fud 250g', depto: 'Carnes y Embutidos', stock: 3, precioCosto: 32.00 }
+                ]),
+
+                // HISTORIAL DE MOVIMIENTOS KARDEX (Persistente)
+                historialMovimientos: Alpine.$persist([
+                    { codigo: '7501055300075', timestamp: 1779669000000, fecha: '24/05/2026 10:30 AM', tipo: 'salida', concepto: 'Venta (Ticket #4021)', entrada: null, salida: 2, saldo: 4, usuario: 'Cajero 1' },
+                    { codigo: '7501055300075', timestamp: 1779495600000, fecha: '22/05/2026 09:00 AM', tipo: 'entrada', concepto: 'Ingreso Sincronización OCR (Fac-889)', entrada: 20, salida: null, saldo: 6, usuario: 'Admin' },
+                    { codigo: '7501000111203', timestamp: 1779671700000, fecha: '24/05/2026 11:15 AM', tipo: 'salida', concepto: 'Venta (Ticket #4022)', entrada: null, salida: 1, saldo: 2, usuario: 'Cajero 1' },
+                    { codigo: '7501020540454', timestamp: 1779595200000, fecha: '23/05/2026 02:40 PM', tipo: 'entrada', concepto: 'Ingreso manual por reposición', entrada: 5, salida: null, saldo: 8, usuario: 'Admin' }
+                ]),
+
                 kardexQuery: '',
                 productoSeleccionado: null,
                 movimientosKardex: [],
 
+                // FORMULARIO DE AJUSTE MANUAL
+                ajusteForm: { codigo: '', tipo: '', cantidad: 1, observaciones: '' },
+
+                // KARDEX CONTROLS
                 buscarKardex() {
-                    // Simulación de búsqueda para el DEMO
-                    if(this.kardexQuery.length > 2) {
-                        this.productoSeleccionado = {
-                            codigo: this.kardexQuery,
-                            nombre: 'Ejemplo de Producto Buscado',
-                            stock: 45
-                        };
-                        
-                        // Generar data mock para el kardex
-                        this.movimientosKardex = [
-                            { fecha: '24/05/2026 10:30 AM', tipo: 'salida', concepto: 'Venta (Ticket #4021)', entrada: null, salida: 2, saldo: 45, usuario: 'Cajero 1' },
-                            { fecha: '23/05/2026 04:15 PM', tipo: 'salida', concepto: 'Venta (Ticket #4010)', entrada: null, salida: 3, saldo: 47, usuario: 'Cajero 2' },
-                            { fecha: '22/05/2026 09:00 AM', tipo: 'entrada', concepto: 'Ingreso Sincronización OCR (Fac-889)', entrada: 20, salida: null, saldo: 50, usuario: 'Admin' },
-                            { fecha: '20/05/2026 11:20 AM', tipo: 'ajuste', concepto: 'Ajuste Manual (Merma)', entrada: null, salida: 1, saldo: 30, usuario: 'Admin' },
-                            { fecha: '18/05/2026 08:30 AM', tipo: 'entrada', concepto: 'Inventario Inicial', entrada: 31, salida: null, saldo: 31, usuario: 'Sistema' }
-                        ];
+                    if (this.kardexQuery.length > 2) {
+                        const prod = this.catalogoProductos.find(p => p.codigo === this.kardexQuery || p.nombre.toLowerCase().includes(this.kardexQuery.toLowerCase()));
+                        if (prod) {
+                            this.productoSeleccionado = prod;
+                            
+                            // Filtrar movimientos para este producto
+                            const movs = this.historialMovimientos.filter(m => m.codigo === prod.codigo);
+                            
+                            // Si no hay movimientos, creamos uno inicial de saldo de apertura
+                            if (movs.length === 0) {
+                                const inicial = {
+                                    codigo: prod.codigo,
+                                    timestamp: Date.now(),
+                                    fecha: new Date().toLocaleString('es-MX', { hour12: false }),
+                                    tipo: 'ajuste',
+                                    concepto: 'Saldo Inicial de Apertura',
+                                    entrada: null,
+                                    salida: null,
+                                    saldo: prod.stock,
+                                    usuario: 'Sistema'
+                                };
+                                this.historialMovimientos.push(inicial);
+                                this.movimientosKardex = [inicial];
+                            } else {
+                                // Ordenar por timestamp desc
+                                this.movimientosKardex = [...movs].sort((a, b) => b.timestamp - a.timestamp);
+                            }
+                        } else {
+                            this.showToast("Producto no encontrado en el catálogo.", "error");
+                        }
                     } else {
-                        alert("Ingresa un código válido para buscar");
+                        this.showToast("Ingresa un término de búsqueda válido.", "info");
                     }
                 },
 
                 abrirModalAjuste() {
+                    this.ajusteForm = { codigo: '', tipo: '', cantidad: 1, observaciones: '' };
                     document.getElementById('modal_ajuste_inventario').showModal();
                 },
 
                 cerrarModalAjuste() {
                     document.getElementById('modal_ajuste_inventario').close();
+                },
+
+                registrarAjusteManual() {
+                    const form = this.ajusteForm;
+                    if (!form.codigo) {
+                        this.showToast("Debes seleccionar un producto.", "error");
+                        return;
+                    }
+                    if (!form.tipo) {
+                        this.showToast("Debes seleccionar el tipo de movimiento.", "error");
+                        return;
+                    }
+                    if (!form.cantidad || form.cantidad <= 0) {
+                        this.showToast("La cantidad debe ser mayor a 0.", "error");
+                        return;
+                    }
+
+                    const prod = this.catalogoProductos.find(p => p.codigo === form.codigo);
+                    if (!prod) {
+                        this.showToast("Producto no encontrado.", "error");
+                        return;
+                    }
+
+                    // Determinar si es entrada o salida
+                    const esSalida = ['merma', 'caducidad', 'consumo'].includes(form.tipo);
+                    const delta = esSalida ? -form.cantidad : form.cantidad;
+                    
+                    if (esSalida && prod.stock < form.cantidad) {
+                        this.showToast(`Stock insuficiente. Stock actual: ${prod.stock}`, "error");
+                        return;
+                    }
+
+                    // Actualizar stock
+                    prod.stock += delta;
+
+                    // Agregar movimiento al Kardex
+                    const conceptoMap = {
+                        merma: 'Merma / Producto Dañado',
+                        caducidad: 'Ajuste por Caducidad',
+                        consumo: 'Consumo Interno',
+                        ingreso_manual: 'Ingreso Manual (Sin Factura)',
+                        devolucion: 'Devolución de Proveedor'
+                    };
+
+                    const nuevoMov = {
+                        codigo: prod.codigo,
+                        timestamp: Date.now(),
+                        fecha: new Date().toLocaleString('es-MX', { hour12: false }),
+                        tipo: esSalida ? 'salida' : 'entrada',
+                        concepto: conceptoMap[form.tipo] + (form.observaciones ? ` - ${form.observaciones}` : ''),
+                        entrada: esSalida ? null : form.cantidad,
+                        salida: esSalida ? form.cantidad : null,
+                        saldo: prod.stock,
+                        usuario: 'Admin'
+                    };
+
+                    this.historialMovimientos.push(nuevoMov);
+                    
+                    // Si el producto ajustado es el que se está consultando en el Kardex, refrescarlo
+                    if (this.productoSeleccionado && this.productoSeleccionado.codigo === prod.codigo) {
+                        this.buscarKardex();
+                    }
+
+                    this.cerrarModalAjuste();
+                    this.showToast("Ajuste de inventario registrado con éxito.", "success");
+                },
+
+                // AUDITORÍA MENSUAL (TOMA FÍSICA)
+                auditoriaActiva: Alpine.$persist(null),
+                historicoAuditorias: Alpine.$persist([]),
+                nuevaAuditoriaForm: { departamento: 'Todos', notas: '' },
+                auditSearchQuery: '',
+
+                get auditoriaActivaItemsFiltrados() {
+                    if (!this.auditoriaActiva || !this.auditoriaActiva.items) return [];
+                    return this.auditoriaActiva.items.filter(item => {
+                        return item.nombre.toLowerCase().includes(this.auditSearchQuery.toLowerCase()) || 
+                               item.codigo.includes(this.auditSearchQuery);
+                    });
+                },
+
+                recalcularFilaAudit(item) {
+                    if (item.stock_fisico < 0) item.stock_fisico = 0;
+                },
+
+                get resumenLiveAuditoria() {
+                    if (!this.auditoriaActiva || !this.auditoriaActiva.items) {
+                        return { faltantes: 0, sobrantes: 0, neto: 0 };
+                    }
+                    let faltantes = 0;
+                    let sobrantes = 0;
+                    this.auditoriaActiva.items.forEach(item => {
+                        const diff = item.stock_fisico - item.stock_sistema;
+                        const val = diff * item.precioCosto;
+                        if (diff < 0) {
+                            faltantes += Math.abs(val);
+                        } else if (diff > 0) {
+                            sobrantes += val;
+                        }
+                    });
+                    return {
+                        faltantes,
+                        sobrantes,
+                        neto: sobrantes - faltantes
+                    };
+                },
+
+                get resumenFilaAuditoria() {
+                    if (!this.auditoriaActiva || !this.auditoriaActiva.items) {
+                        return { cuadrados: 0, diferencias: 0 };
+                    }
+                    let cuadrados = 0;
+                    let diferencias = 0;
+                    this.auditoriaActiva.items.forEach(item => {
+                        if (item.stock_fisico === item.stock_sistema) {
+                            cuadrados++;
+                        } else {
+                            diferencias++;
+                        }
+                    });
+                    return { cuadrados, diferencias };
+                },
+
+                abrirIniciarAuditoria() {
+                    this.nuevaAuditoriaForm = { departamento: 'Todos', notas: '' };
+                    document.getElementById('modal_iniciar_auditoria').showModal();
+                },
+
+                cerrarIniciarAuditoria() {
+                    document.getElementById('modal_iniciar_auditoria').close();
+                },
+
+                confirmarIniciarAuditoria() {
+                    const depto = this.nuevaAuditoriaForm.departamento;
+                    const itemsToAudit = this.catalogoProductos
+                        .filter(p => depto === 'Todos' || p.depto === depto)
+                        .map(p => ({
+                            codigo: p.codigo,
+                            nombre: p.nombre,
+                            depto: p.depto,
+                            stock_sistema: p.stock,
+                            stock_fisico: p.stock,
+                            precioCosto: p.precioCosto
+                        }));
+
+                    if (itemsToAudit.length === 0) {
+                        this.showToast("No hay productos en ese departamento para auditar.", "error");
+                        this.cerrarIniciarAuditoria();
+                        return;
+                    }
+
+                    this.auditoriaActiva = {
+                        id: this.historicoAuditorias.length + 1,
+                        fecha_inicio: new Date().toLocaleString('es-MX', { hour12: false }),
+                        departamento: depto,
+                        notas: this.nuevaAuditoriaForm.notas,
+                        items: itemsToAudit
+                    };
+
+                    this.cerrarIniciarAuditoria();
+                    this.showToast("Sesión de auditoría física iniciada.", "success");
+                },
+
+                guardarBorradorAuditoria() {
+                    this.showToast("Borrador de auditoría guardado en el navegador.", "info");
+                },
+
+                confirmarCancelarAuditoria() {
+                    if (confirm("¿Estás seguro de que deseas cancelar la auditoría en curso? Se perderán todos los conteos físicos.")) {
+                        this.auditoriaActiva = null;
+                        this.showToast("Auditoría cancelada.", "info");
+                    }
+                },
+
+                abrirResumenAuditoria() {
+                    document.getElementById('modal_resumen_auditoria').showModal();
+                },
+
+                cerrarResumenAuditoria() {
+                    document.getElementById('modal_resumen_auditoria').close();
+                },
+
+                procesarAuditoriaFinal() {
+                    if (!this.auditoriaActiva) return;
+
+                    // 1. Actualizamos existencias en catálogo y registramos en Kardex
+                    this.auditoriaActiva.items.forEach(item => {
+                        const prod = this.catalogoProductos.find(p => p.codigo === item.codigo);
+                        if (prod) {
+                            const diff = item.stock_fisico - item.stock_sistema;
+                            if (diff !== 0) {
+                                // Hay discrepancia, registramos en el Kardex
+                                const esSobrante = diff > 0;
+                                const cantAbs = Math.abs(diff);
+                                
+                                prod.stock = item.stock_fisico;
+                                
+                                const nuevoMov = {
+                                    codigo: prod.codigo,
+                                    timestamp: Date.now(),
+                                    fecha: new Date().toLocaleString('es-MX', { hour12: false }),
+                                    tipo: 'ajuste',
+                                    concepto: `Ajuste por Auditoría Física - ${this.auditoriaActiva.departamento} (${esSobrante ? 'Sobrante' : 'Faltante'})`,
+                                    entrada: esSobrante ? cantAbs : null,
+                                    salida: esSobrante ? null : cantAbs,
+                                    saldo: prod.stock,
+                                    usuario: 'Auditor (Admin)'
+                                };
+                                this.historialMovimientos.push(nuevoMov);
+                            }
+                        }
+                    });
+
+                    // 2. Guardamos en el historial de auditorías
+                    const resLive = this.resumenLiveAuditoria;
+                    const resFila = this.resumenFilaAuditoria;
+                    this.historicoAuditorias.unshift({
+                        id: this.auditoriaActiva.id,
+                        fecha_inicio: this.auditoriaActiva.fecha_inicio,
+                        fecha_fin: new Date().toLocaleString('es-MX', { hour12: false }),
+                        departamento: this.auditoriaActiva.departamento,
+                        total_items: this.auditoriaActiva.items.length,
+                        diferencias: resFila.diferencias,
+                        faltantes: resLive.faltantes,
+                        sobrantes: resLive.sobrantes,
+                        neto: resLive.neto,
+                        notas: this.auditoriaActiva.notas || 'Sin notas'
+                    });
+
+                    // Si el producto seleccionado en el Kardex cambió de stock, actualizar vista
+                    if (this.productoSeleccionado) {
+                        const actual = this.catalogoProductos.find(p => p.codigo === this.productoSeleccionado.codigo);
+                        if (actual) {
+                            this.productoSeleccionado = actual;
+                            this.buscarKardex();
+                        }
+                    }
+
+                    // 3. Limpiamos auditoría activa
+                    this.auditoriaActiva = null;
+
+                    // 4. Cerramos modal y notificamos
+                    this.cerrarResumenAuditoria();
+                    this.showToast("¡Inventario actualizado y ajustado según auditoría física con éxito!", "success");
                 }
             }))
         });
