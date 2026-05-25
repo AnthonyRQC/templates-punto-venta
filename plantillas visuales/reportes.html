@@ -100,6 +100,12 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Historial de Movimientos
                     </button>
+                    <button @click="tabActiva = 'promociones'" 
+                            :class="tabActiva === 'promociones' ? 'border-brand-600 text-brand-700 dark:text-brand-400 dark:border-brand-400 font-bold' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'"
+                            class="pb-3 text-sm border-b-2 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Análisis de Promociones
+                    </button>
                 </div>
 
                 <!-- VISTA 1: VALOR DE INVENTARIO -->
@@ -283,6 +289,99 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- VISTA 4: ANÁLISIS DE PROMOCIONES -->
+                <div x-show="tabActiva === 'promociones'" x-cloak x-transition.opacity class="flex flex-col gap-6">
+                    <!-- Tarjetas de KPI de Promociones -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col justify-center items-center text-center">
+                            <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Monto Descontado Total</span>
+                            <span class="text-2xl font-black text-red-500">Bs. 1,840.00</span>
+                            <span class="text-[10px] text-gray-400 mt-1">Margen cedido por promociones</span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col justify-center items-center text-center">
+                            <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Ventas en Promoción</span>
+                            <span class="text-2xl font-black text-brand-600 dark:text-brand-400">Bs. 12,450.00</span>
+                            <span class="text-[10px] text-gray-400 mt-1">27.5% de la venta mensual total</span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col justify-center items-center text-center">
+                            <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Volumen en Oferta</span>
+                            <span class="text-2xl font-black text-gray-800 dark:text-gray-100">520 un.</span>
+                            <span class="text-[10px] text-gray-400 mt-1">Unidades vendidas bajo campaña</span>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-5 shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col justify-center items-center text-center">
+                            <span class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Ganancia Estimada</span>
+                            <span class="text-2xl font-black text-green-600">Bs. 3,120.00</span>
+                            <span class="text-[10px] text-gray-400 mt-1">Margen de ganancia neto: 25.06%</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Rendimiento de Promociones -->
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center flex-wrap gap-4">
+                            <div>
+                                <h3 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">Rendimiento por Campaña de Promoción</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Comparativa de volumen de venta, descuentos aplicados y rentabilidad de cada regla.</p>
+                            </div>
+                            <select class="select select-sm select-bordered bg-gray-50 dark:bg-slate-900 border-gray-200 dark:border-slate-600 rounded-xl">
+                                <option>Este Mes (Mayo 2026)</option>
+                                <option>Mes Anterior</option>
+                                <option>Histórico Anual</option>
+                            </select>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="table table-sm w-full">
+                                <thead class="bg-gray-50/50 dark:bg-slate-900/50 text-gray-500 dark:text-gray-400 font-bold">
+                                    <tr>
+                                        <th class="py-3 px-6">Concepto de la Promoción</th>
+                                        <th class="py-3 text-center">Unidades Vendidas</th>
+                                        <th class="py-3 text-right">Descuento Aplicado (Bs.)</th>
+                                        <th class="py-3 text-right">Ingreso Bruto (Bs.)</th>
+                                        <th class="py-3 text-right font-bold text-gray-900 dark:text-white">Costo Mercadería (Bs.)</th>
+                                        <th class="py-3 text-center">Margen Resultante</th>
+                                        <th class="py-3 text-center">Rentabilidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-700 dark:text-gray-300 text-xs">
+                                    <tr class="hover:bg-brand-50/30 border-b border-gray-50 dark:border-slate-700/50">
+                                        <td class="py-3 px-6 font-semibold">3x2 en Refrescos Coca-Cola</td>
+                                        <td class="py-3 text-center font-medium">210 un.</td>
+                                        <td class="py-3 text-right font-mono text-red-500">-Bs. 820.00</td>
+                                        <td class="py-3 text-right font-mono">Bs. 4,200.00</td>
+                                        <td class="py-3 text-right font-mono">Bs. 3,150.00</td>
+                                        <td class="py-3 text-center font-bold text-gray-800 dark:text-gray-200">25.00%</td>
+                                        <td class="py-3 text-center">
+                                            <span class="badge text-[10px] font-bold rounded bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300 border-none px-1.5 py-0.5">Estable / Rentable</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-brand-50/30 border-b border-gray-50 dark:border-slate-700/50">
+                                        <td class="py-3 px-6 font-semibold">Precio por Docena - Huevos</td>
+                                        <td class="py-3 text-center font-medium">140 un.</td>
+                                        <td class="py-3 text-right font-mono text-red-500">-Bs. 450.00</td>
+                                        <td class="py-3 text-right font-mono">Bs. 3,500.00</td>
+                                        <td class="py-3 text-right font-mono">Bs. 2,625.00</td>
+                                        <td class="py-3 text-center font-bold text-gray-800 dark:text-gray-200">25.00%</td>
+                                        <td class="py-3 text-center">
+                                            <span class="badge text-[10px] font-bold rounded bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300 border-none px-1.5 py-0.5">Estable / Rentable</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-brand-50/30 border-b border-gray-50 dark:border-slate-700/50">
+                                        <td class="py-3 px-6 font-semibold">10% Descuento Lácteos (Fin de Semana)</td>
+                                        <td class="py-3 text-center font-medium">170 un.</td>
+                                        <td class="py-3 text-right font-mono text-red-500">-Bs. 570.00</td>
+                                        <td class="py-3 text-right font-mono">Bs. 4,750.00</td>
+                                        <td class="py-3 text-right font-mono">Bs. 3,990.00</td>
+                                        <td class="py-3 text-center font-bold text-gray-800 dark:text-gray-200">16.00%</td>
+                                        <td class="py-3 text-center">
+                                            <span class="badge text-[10px] font-bold rounded bg-amber-100 text-amber-800 dark:bg-amber-950/20 dark:text-amber-300 border-none px-1.5 py-0.5">Alerta Margen Bajo</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 

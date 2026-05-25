@@ -111,6 +111,12 @@
                         Auditoría Mensual (Toma Física)
                         <span x-show="auditoriaActiva" class="badge badge-xs badge-warning text-[9px] font-bold text-white uppercase rounded bg-amber-500 border-none px-1.5 py-0.5" style="display: none;">En curso</span>
                     </button>
+                    <button @click="activeSubTab = 'historial_actualizaciones'" 
+                            class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center gap-2"
+                            :class="activeSubTab === 'historial_actualizaciones' ? 'bg-brand text-white shadow-sm' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700/50 dark:text-slate-400'">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Historial de Cambios (Catálogo)
+                    </button>
                 </div>
 
                 <!-- SECCIÓN: KARDEX DE INVENTARIO -->
@@ -456,6 +462,63 @@
                     </div>
                 </div>
 
+                <!-- SECCIÓN: HISTORIAL DE ACTUALIZACIONES (AUDITORÍA DE CAMBIOS) -->
+                <div x-show="activeSubTab === 'historial_actualizaciones'" x-cloak x-transition class="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mb-8">
+                    <div class="p-6 border-b border-gray-100 dark:border-slate-700">
+                        <h3 class="font-bold text-gray-900 dark:text-white uppercase tracking-wider text-sm">Historial de Actualizaciones (Catálogo)</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Bitácora de auditoría estilo "simple history" que rastrea cuándo se aplicaron o descartaron cambios de costos, precios y descripciones obtenidos vía OCR o manuales.</p>
+                    </div>
+
+                    <div class="overflow-x-auto min-h-[300px] relative">
+                        <table class="table table-sm w-full">
+                            <thead class="bg-gray-50/80 dark:bg-slate-900/80 text-gray-500 dark:text-gray-400 font-medium">
+                                <tr>
+                                    <th class="py-3 px-6">Fecha y Hora</th>
+                                    <th class="py-3">Producto</th>
+                                    <th class="py-3">Origen</th>
+                                    <th class="py-3">Modificación</th>
+                                    <th class="py-3 text-right">Valor Anterior</th>
+                                    <th class="py-3 text-right">Valor Nuevo</th>
+                                    <th class="py-3 text-center">Decisión</th>
+                                    <th class="py-3">Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700 dark:text-gray-300 text-xs">
+                                <template x-for="act in historialActualizacionesCatalogo" :key="act.id">
+                                    <tr class="hover:bg-brand-50/50 dark:hover:bg-brand-900/20 border-b border-gray-50 dark:border-slate-700/50">
+                                        <td class="py-3 px-6 text-gray-500" x-text="act.fecha"></td>
+                                        <td class="py-3 font-semibold text-gray-900 dark:text-white" x-text="act.nombre"></td>
+                                        <td class="py-3 text-gray-500" x-text="act.tipo_origen"></td>
+                                        <td class="py-3">
+                                            <span class="badge text-[10px] font-bold px-1.5 py-0.5 rounded border-none"
+                                                  :class="{
+                                                      'bg-blue-100 text-blue-800 dark:bg-blue-950/20 dark:text-blue-300': act.campo_modificado === 'Costo Compra',
+                                                      'bg-purple-100 text-purple-800 dark:bg-purple-950/20 dark:text-purple-300': act.campo_modificado === 'Nombre Producto',
+                                                      'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300': act.campo_modificado === 'Nuevo Producto',
+                                                      'bg-amber-100 text-amber-800 dark:bg-amber-950/20 dark:text-amber-300': act.campo_modificado === 'Precio Venta'
+                                                  }"
+                                                  x-text="act.campo_modificado"></span>
+                                        </td>
+                                        <td class="py-3 text-right font-mono" x-text="act.valor_anterior"></td>
+                                        <td class="py-3 text-right font-mono font-bold" x-text="act.valor_nuevo"></td>
+                                        <td class="py-3 text-center">
+                                            <span class="badge text-[10px] font-bold rounded px-1.5 py-0.5 border-none"
+                                                  :class="act.estado_aplicacion === 'Aplicado' ? 'bg-green-100 text-green-800 dark:bg-green-950/20 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-950/20 dark:text-red-300'"
+                                                  x-text="act.estado_aplicacion"></span>
+                                        </td>
+                                        <td class="py-3 text-gray-500" x-text="act.usuario"></td>
+                                    </tr>
+                                </template>
+                                <tr x-show="historialActualizacionesCatalogo.length === 0">
+                                    <td colspan="8" class="py-12 text-center text-gray-400 dark:text-gray-500">
+                                        No hay actualizaciones registradas en el historial.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- DIALOG: INICIAR AUDITORÍA -->
                 <dialog id="modal_iniciar_auditoria" class="modal modal-bottom sm:modal-middle" @keydown.escape.window="cerrarIniciarAuditoria()">
                     <div class="modal-box bg-white dark:bg-slate-800 rounded-3xl p-0 border border-gray-100 dark:border-slate-700 overflow-hidden shadow-2xl max-w-md">
@@ -576,6 +639,13 @@
                     { codigo: '7501055310234', nombre: 'Agua Ciel 1.5L', depto: 'Bebidas', stock: 0, precioCosto: 11.50 },
                     { codigo: '7501032120023', nombre: 'Nescafé Clásico 200g', depto: 'Abarrotes', stock: 1, precioCosto: 85.00 },
                     { codigo: '7501011122334', nombre: 'Jamón de Pavo Fud 250g', depto: 'Carnes y Embutidos', stock: 3, precioCosto: 32.00 }
+                ]),
+
+                // HISTORIAL DE ACTUALIZACIONES DE CATÁLOGO (Persistente)
+                historialActualizacionesCatalogo: Alpine.$persist([
+                    { id: 1, codigo: '7501055300075', nombre: 'Coca Cola 2Lts Retornable', tipo_origen: 'Factura OCR (FAC-9912)', campo_modificado: 'Costo Compra', valor_anterior: 'Bs. 22.00', valor_nuevo: 'Bs. 24.50', estado_aplicacion: 'Aplicado', fecha: '24/05/2026 14:35', usuario: 'Admin' },
+                    { id: 2, codigo: '7501020540454', nombre: 'Leche Entera Lala 1L', tipo_origen: 'Ajuste Manual', campo_modificado: 'Precio Venta', valor_anterior: 'Bs. 22.00', valor_nuevo: 'Bs. 21.00', estado_aplicacion: 'Aplicado', fecha: '23/05/2026 11:20', usuario: 'Admin' },
+                    { id: 3, codigo: '7501000111203', nombre: 'Pan Integral Bimbo Grande', tipo_origen: 'Factura OCR (FAC-8822)', campo_modificado: 'Costo Compra', valor_anterior: 'Bs. 35.00', valor_nuevo: 'Bs. 38.00', estado_aplicacion: 'Descartado', fecha: '22/05/2026 09:15', usuario: 'Admin' }
                 ]),
 
                 // HISTORIAL DE MOVIMIENTOS KARDEX (Persistente)

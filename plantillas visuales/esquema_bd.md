@@ -249,6 +249,20 @@ Para procesar compras dinámicas y conciliar la factura del proveedor con el inv
 - **`costo_unitario`**: Decimal (Costo unitario del producto para valorizar la diferencia).
 - **`valor_diferencia`**: Decimal (Calculado: `diferencia * costo_unitario`).
 
+### 16. Tabla: `historial_actualizaciones_productos` (Auditoría de Cambios en Catálogo)
+*Bitácora inmutable (estilo "simple history" o tabla de auditoría) para rastrear cuándo se modificó o decidió no modificar (descartar) un costo, nombre o precio.*
+- **`id`**: Entero, Llave Primaria (Autoincremental).
+- **`producto_id`**: Entero, **Llave Foránea** que enlaza con `productos(id)` (Nulo si el producto es totalmente nuevo).
+- **`codigo_producto`**: Texto (Código de barra universal o SKU).
+- **`nombre_producto`**: Texto (Nombre comercial legible registrado).
+- **`tipo_origen`**: Texto (ej. `'Factura OCR (FAC-9912)'`, `'Ajuste Manual'`, `'Sincronización Catálogo'`).
+- **`campo_modificado`**: Texto (Enum: `'Costo Compra'`, `'Precio Venta'`, `'Nombre Producto'`, `'Nuevo Producto'`).
+- **`valor_anterior`**: Texto (ej. `'Bs. 45.00'`, `'Leche Pil Entera'`).
+- **`valor_nuevo`**: Texto (ej. `'Bs. 50.00'`).
+- **`estado_aplicacion`**: Texto (Enum: `'Aplicado'`, `'Descartado'`).
+- **`usuario_id`**: Entero, **Llave Foránea** que enlaza con `usuarios(id)`.
+- **`fecha`**: Fecha y Hora exacta del registro de auditoría.
+
 ---
 
 ## 📝 Apuntes y Fórmulas del Negocio (Ajuste de Inventario)
@@ -261,4 +275,9 @@ Para procesar compras dinámicas y conciliar la factura del proveedor con el inv
    - El estado de la auditoría cambia a `'Procesada'`.
    - Se actualiza la `existencia` en `productos` a la cantidad física real (`existencia = stock_fisico`).
    - Se genera un movimiento de tipo `'Ajuste'` en `movimientos_inventario` (Kardex) para cada producto que haya tenido diferencia, detallando el concepto "Ajuste por Auditoría Física" y registrando la diferencia como entrada (si sobra) o salida (si falta).
+
+### 5. Flujo de Auditoría de Cambios de Catálogo (Historial de Actualizaciones)
+1. **Detección de Cambios:** En la conciliación OCR, si los costos/nombres difieren de la base de datos, se envían a la cola de sincronización.
+2. **Aplicar / Descartar:** El administrador puede aplicar o descartar los cambios en lote o individualmente.
+3. **Registro de Auditoría:** Cada decisión genera un registro en `historial_actualizaciones_productos`. Si se descarta, el sistema almacena el cambio propuesto y su estado `'Descartado'`, lo que proporciona una bitácora transparente de por qué no se modificó un precio o descripción (ej. para mantener precios competitivos).
 

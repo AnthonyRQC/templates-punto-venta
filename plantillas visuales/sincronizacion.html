@@ -249,6 +249,9 @@
                             <button @click="procesarLoteFinal()" class="btn btn-sm bg-brand-600 hover:bg-brand-700 text-white border-none rounded-full px-6 ml-2 shadow-md shadow-brand-500/20">
                                 Aplicar Actualizaciones
                             </button>
+                            <button @click="descartarLote()" class="btn btn-sm btn-ghost text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-full px-6 ml-2 border border-red-200 dark:border-red-800/30">
+                                Descartar Cambios
+                            </button>
                         </div>
                     </div>
 
@@ -341,6 +344,11 @@
                 mensajeToast: '',
                 
                 colaSincronizacion: Alpine.$persist([]),
+                historialActualizacionesCatalogo: Alpine.$persist([
+                    { id: 1, codigo: '7501055300075', nombre: 'Coca Cola 2Lts Retornable', tipo_origen: 'Factura OCR (FAC-9912)', campo_modificado: 'Costo Compra', valor_anterior: 'Bs. 22.00', valor_nuevo: 'Bs. 24.50', estado_aplicacion: 'Aplicado', fecha: '24/05/2026 14:35', usuario: 'Admin' },
+                    { id: 2, codigo: '7501020540454', nombre: 'Leche Entera Lala 1L', tipo_origen: 'Ajuste Manual', campo_modificado: 'Precio Venta', valor_anterior: 'Bs. 22.00', valor_nuevo: 'Bs. 21.00', estado_aplicacion: 'Aplicado', fecha: '23/05/2026 11:20', usuario: 'Admin' },
+                    { id: 3, codigo: '7501000111203', nombre: 'Pan Integral Bimbo Grande', tipo_origen: 'Factura OCR (FAC-8822)', campo_modificado: 'Costo Compra', valor_anterior: 'Bs. 35.00', valor_nuevo: 'Bs. 38.00', estado_aplicacion: 'Descartado', fecha: '22/05/2026 09:15', usuario: 'Admin' }
+                ]),
                 
                 tabActiva: 'actualizar',
                 seleccionadosActualizar: [],
@@ -511,6 +519,57 @@
                     try {
                         await new Promise(r => setTimeout(r, 800));
 
+                        const nowStr = new Date().toLocaleString('es-MX', { hour12: false });
+                        
+                        // Registrar en el historial de actualizaciones antes de marcar como Sincronizado
+                        this.colaSincronizacion.forEach(item => {
+                            if (seleccionados.includes(item.codigo)) {
+                                if (item.tipo === 'Precio') {
+                                    if (item.nombre !== item.nombre_actual) {
+                                        this.historialActualizacionesCatalogo.unshift({
+                                            id: this.historialActualizacionesCatalogo.length + 1,
+                                            codigo: item.codigo,
+                                            nombre: item.nombre,
+                                            tipo_origen: `Sincronización Catálogo (${item.recepcion_folio || 'Factura'})`,
+                                            campo_modificado: 'Nombre Producto',
+                                            valor_anterior: item.nombre_actual,
+                                            valor_nuevo: item.nombre,
+                                            estado_aplicacion: 'Aplicado',
+                                            fecha: nowStr,
+                                            usuario: 'Admin'
+                                        });
+                                    }
+                                    if (item.costo_nuevo !== item.costo_actual) {
+                                        this.historialActualizacionesCatalogo.unshift({
+                                            id: this.historialActualizacionesCatalogo.length + 1,
+                                            codigo: item.codigo,
+                                            nombre: item.nombre_actual,
+                                            tipo_origen: `Sincronización Catálogo (${item.recepcion_folio || 'Factura'})`,
+                                            campo_modificado: 'Costo Compra',
+                                            valor_anterior: `Bs. ${item.costo_actual.toFixed(2)}`,
+                                            valor_nuevo: `Bs. ${item.costo_nuevo.toFixed(2)}`,
+                                            estado_aplicacion: 'Aplicado',
+                                            fecha: nowStr,
+                                            usuario: 'Admin'
+                                        });
+                                    }
+                                } else if (item.tipo === 'Nuevo') {
+                                    this.historialActualizacionesCatalogo.unshift({
+                                        id: this.historialActualizacionesCatalogo.length + 1,
+                                        codigo: item.codigo,
+                                        nombre: item.nombre,
+                                        tipo_origen: `Sincronización Catálogo (${item.recepcion_folio || 'Factura'})`,
+                                        campo_modificado: 'Nuevo Producto',
+                                        valor_anterior: 'No registrado',
+                                        valor_nuevo: `Costo: Bs. ${item.costo_nuevo.toFixed(2)}`,
+                                        estado_aplicacion: 'Aplicado',
+                                        fecha: nowStr,
+                                        usuario: 'Admin'
+                                    });
+                                }
+                            }
+                        });
+
                         this.colaSincronizacion = this.colaSincronizacion.map(item => {
                             if (seleccionados.includes(item.codigo)) {
                                 return { ...item, estado: 'Sincronizado' };
@@ -519,6 +578,91 @@
                         });
 
                         this.mensajeToast = "¡Productos actualizados en el catálogo exitosamente!";
+                        this.mostrarToast = true;
+                        
+                        setTimeout(() => {
+                            this.mostrarToast = false;
+                        }, 3500);
+
+                        if (this.tabActiva === 'actualizar') {
+                            this.seleccionadosActualizar = [];
+                        } else {
+                            this.seleccionadosNuevos = [];
+                        }
+
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.cargando = false;
+                    }
+                },
+
+                async descartarLote() {
+                    const seleccionados = this.tabActiva === 'actualizar' ? this.seleccionadosActualizar : this.seleccionadosNuevos;
+                    if (seleccionados.length === 0) return;
+                    
+                    if (!confirm("¿Estás seguro de que deseas descartar estos cambios de catálogo? Se registrará como omitido en el historial de actualizaciones.")) return;
+                    
+                    this.cargando = true;
+                    
+                    try {
+                        await new Promise(r => setTimeout(r, 600));
+
+                        const nowStr = new Date().toLocaleString('es-MX', { hour12: false });
+                        
+                        // Registrar descarte en el historial
+                        this.colaSincronizacion.forEach(item => {
+                            if (seleccionados.includes(item.codigo)) {
+                                if (item.tipo === 'Precio') {
+                                    if (item.nombre !== item.nombre_actual) {
+                                        this.historialActualizacionesCatalogo.unshift({
+                                            id: this.historialActualizacionesCatalogo.length + 1,
+                                            codigo: item.codigo,
+                                            nombre: item.nombre,
+                                            tipo_origen: `Sincronización Catálogo (${item.recepcion_folio || 'Factura'})`,
+                                            campo_modificado: 'Nombre Producto',
+                                            valor_anterior: item.nombre_actual,
+                                            valor_nuevo: item.nombre,
+                                            estado_aplicacion: 'Descartado',
+                                            fecha: nowStr,
+                                            usuario: 'Admin'
+                                        });
+                                    }
+                                    if (item.costo_nuevo !== item.costo_actual) {
+                                        this.historialActualizacionesCatalogo.unshift({
+                                            id: this.historialActualizacionesCatalogo.length + 1,
+                                            codigo: item.codigo,
+                                            nombre: item.nombre_actual,
+                                            tipo_origen: `Sincronización Catálogo (${item.recepcion_folio || 'Factura'})`,
+                                            campo_modificado: 'Costo Compra',
+                                            valor_anterior: `Bs. ${item.costo_actual.toFixed(2)}`,
+                                            valor_nuevo: `Bs. ${item.costo_nuevo.toFixed(2)}`,
+                                            estado_aplicacion: 'Descartado',
+                                            fecha: nowStr,
+                                            usuario: 'Admin'
+                                        });
+                                    }
+                                } else if (item.tipo === 'Nuevo') {
+                                    this.historialActualizacionesCatalogo.unshift({
+                                        id: this.historialActualizacionesCatalogo.length + 1,
+                                        codigo: item.codigo,
+                                        nombre: item.nombre,
+                                        tipo_origen: `Sincronización Catálogo (${item.recepcion_folio || 'Factura'})`,
+                                        campo_modificado: 'Nuevo Producto',
+                                        valor_anterior: 'No registrado',
+                                        valor_nuevo: `Costo: Bs. ${item.costo_nuevo.toFixed(2)}`,
+                                        estado_aplicacion: 'Descartado',
+                                        fecha: nowStr,
+                                        usuario: 'Admin'
+                                    });
+                                }
+                            }
+                        });
+
+                        // Eliminar de la cola de sincronización
+                        this.colaSincronizacion = this.colaSincronizacion.filter(item => !seleccionados.includes(item.codigo));
+
+                        this.mensajeToast = "¡Cambios descartados y registrados en el historial de actualizaciones!";
                         this.mostrarToast = true;
                         
                         setTimeout(() => {
