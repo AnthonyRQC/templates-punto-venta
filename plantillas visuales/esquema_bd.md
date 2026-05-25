@@ -281,3 +281,20 @@ Para procesar compras dinámicas y conciliar la factura del proveedor con el inv
 2. **Aplicar / Descartar:** El administrador puede aplicar o descartar los cambios en lote o individualmente.
 3. **Registro de Auditoría:** Cada decisión genera un registro en `historial_actualizaciones_productos`. Si se descarta, el sistema almacena el cambio propuesto y su estado `'Descartado'`, lo que proporciona una bitácora transparente de por qué no se modificó un precio o descripción (ej. para mantener precios competitivos).
 
+### 6. Flujo de Rendimiento de Promociones y Descuentos
+1. **Registro del Descuento:** Cada venta que se beneficie de una promoción registra en `ventas_detalles` el campo `descuento_aplicado`.
+2. **Medición de Impacto Contable:**
+   - **Ingreso Sacrificado:** Es la sumatoria de todos los `descuento_aplicado` bajo esa promoción.
+   - **Ganancia Neta Real:** Se deduce restando el costo unitario real al subtotal cobrado (que ya tiene el descuento restado).
+3. **Pregunta Clave:** ¿Las promociones de margen reducido (como 3x2) son rentables? El sistema lo responde contrastando el incremento de volumen frente a la disminución porcentual de margen.
+
+### 7. Flujo de Rotación de Inventario y Elasticidad de Precios (Preguntas Clave)
+1. **Elasticidad Precio-Demanda**:
+   - Evalúa cómo reacciona el volumen vendido ante variaciones de precio al público (ej. rebajar Coca-Cola 2L de 12 Bs a 11.50 Bs).
+   - **Fórmula de Elasticidad:** $\text{Elasticidad} = \frac{\% \text{ Cambio en Cantidad Vendida}}{\% \text{ Cambio en Precio}}$.
+   - Si la elasticidad es mayor a 1, la demanda es elástica (el incremento en volumen compensa con creces el menor precio unitario, resultando en mayor Utilidad Bruta total).
+2. **Rotación de Stock e Inactividad (Productos "Hueso")**:
+   - Monitorea productos cuyo stock físico no registra movimientos en un período de 30, 45 o 60 días.
+   - **Cálculo del Costo de Oportunidad:** Se valoriza el capital inmovilizado en estanterías (`existencia * precio_costo`).
+   - **Sugerencias de Liquidación:** Para productos estancados, el sistema sugiere rebajas comerciales automáticas (ej. 15% o 20% de descuento) para liquidar existencias, liberar espacio y recuperar liquidez.
+
